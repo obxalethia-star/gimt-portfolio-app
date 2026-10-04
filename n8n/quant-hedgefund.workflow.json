@@ -1,0 +1,2268 @@
+{
+  "name": "Quant Hedgefund",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "d4884633-b7b3-4110-8795-90549d0ce00b",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -672,
+        768
+      ],
+      "webhookId": "2af0e7d7-7d51-40d0-8735-6f9a9c2d9146",
+      "credentials": {
+        "telegramApi": {
+          "id": "KPAeAW9ijpyEQokO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "id": "cf4fea63-5f6b-43e2-8936-f3742b0ad033",
+      "name": "Load Skills",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        768
+      ],
+      "parameters": {
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "condition": "eq",
+              "keyName": "enabled",
+              "keyValue": "true"
+            }
+          ]
+        },
+        "matchType": "allFilters",
+        "operation": "getAll",
+        "resource": "row",
+        "returnAll": true,
+        "tableId": "agent_skills"
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "0d798edb-d2a7-4a67-a49c-678f3f39d7c5",
+      "name": "Load Holdings",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        768
+      ],
+      "parameters": {
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "condition": "eq",
+              "keyName": "telegram_id",
+              "keyValue": "={{ $('Normalize Message').first().json.telegram_id }}"
+            }
+          ]
+        },
+        "matchType": "allFilters",
+        "operation": "getAll",
+        "resource": "row",
+        "returnAll": true,
+        "tableId": "v_portfolio"
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "e47f6106-13cf-4394-b3e3-7ba4944c03cb",
+      "name": "Route Message",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        448,
+        768
+      ],
+      "parameters": {
+        "mode": "rules",
+        "options": {},
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "help"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "help",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "save_holdings"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "save_holdings",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "view_portfolio"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "view_portfolio",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "import"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "import",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "set_wallet"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "set_wallet",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "sync"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "sync",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "market"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "market",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "news"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "news",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "or",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "analyze"
+                  },
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "risk"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "analyze",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "chart"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "chart",
+              "renameOutput": true
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.route }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "ask"
+                  }
+                ],
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                }
+              },
+              "outputKey": "ask",
+              "renameOutput": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "91da7a37-1b9f-4d63-8550-e29f8d09cc2e",
+      "name": "Help Reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        752,
+        -1100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "help-reply-chat",
+              "name": "chat_id",
+              "type": "number",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "id": "help-reply-reply",
+              "name": "reply",
+              "type": "string",
+              "value": "🤖 QHF Market Analyst\n\n📈 Send a chart screenshot (caption optional, e.g. \"BTC 4h\") for a chart read.\n\n/market [SYMBOL] – market overview and a call (default BTC; stocks too, e.g. /market AAPL or /market NPN.JO)\n/news [topic] – news scan for your holdings or a topic\n/analyze – investor panel: Buffett, Dalio, Wood, Ackman\n/risk – risk report (no AI)\n/portfolio – show holdings\n/portfolio NASDAQ:AAPL:10@182.5, BTC:0.25 – add or update holdings (quantity@average cost)\n/wallet 0x… – link your Invo / Hyperliquid wallet (public address only)\n/sync – import Invo trades and open positions from Hyperliquid\n📎 Send a CSV with the caption /import google (holdings) or /import invo or /import binance (trade history)\n\nAnything else you type goes to the analyst."
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "mode": "manual",
+        "options": {}
+      }
+    },
+    {
+      "id": "183afa42-7a98-455b-87cf-5ce29818beca",
+      "name": "Save Holdings",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        992,
+        -880
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "method": "POST",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://hgjzvddoyqyegygatiyd.supabase.co/rest/v1/rpc/upsert_holdings"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "712ca904-3584-484a-a5a2-2881bab55b65",
+      "name": "Download CSV File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        -440
+      ],
+      "parameters": {
+        "download": true,
+        "fileId": "={{ $json.file_id }}",
+        "operation": "get",
+        "resource": "file"
+      },
+      "webhookId": "c4940124-b861-4572-a4d0-d8c136440ff9",
+      "credentials": {
+        "telegramApi": {
+          "id": "KPAeAW9ijpyEQokO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "id": "4af79e75-e618-4307-b8f4-185848dc7b42",
+      "name": "Read CSV",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        -440
+      ],
+      "parameters": {
+        "binaryPropertyName": "data",
+        "operation": "csv",
+        "options": {
+          "enableBOM": true,
+          "relaxQuotes": true
+        }
+      }
+    },
+    {
+      "id": "ab4dc914-aab0-4450-9852-183b5951bf52",
+      "name": "Save Import",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1472,
+        -440
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "method": "POST",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "=https://hgjzvddoyqyegygatiyd.supabase.co/rest/v1/rpc/{{ $json.rpc }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "029f2bdd-721d-4d22-b843-fb937d03727d",
+      "name": "Save Wallet",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        752,
+        -220
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ p_telegram_id: $json.telegram_id, p_username: $json.username, p_wallet: $json.args }) }}",
+        "method": "POST",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://hgjzvddoyqyegygatiyd.supabase.co/rest/v1/rpc/set_hyperliquid_wallet"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "71f42fc5-0ff0-446f-a936-d77425db034f",
+      "name": "Load Sync State",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        752,
+        0
+      ],
+      "parameters": {
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "condition": "eq",
+              "keyName": "telegram_id",
+              "keyValue": "={{ $json.telegram_id }}"
+            }
+          ]
+        },
+        "limit": 1,
+        "matchType": "allFilters",
+        "operation": "getAll",
+        "resource": "row",
+        "returnAll": false,
+        "tableId": "v_sync_state"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "320e842e-84d6-4dc0-a908-fd8afc44e1ec",
+      "name": "Wallet Linked?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.hyperliquid_wallet }}",
+              "operator": {
+                "operation": "notEmpty",
+                "singleValue": true,
+                "type": "string"
+              }
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1ed10ae4-d0dd-47b9-8c0e-b3b42f1ee93a",
+      "name": "Fetch Hyperliquid Fills",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1232,
+        -80
+      ],
+      "parameters": {
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'userFillsByTime', user: $json.hyperliquid_wallet, startTime: Number($json.last_fill_ms || 0) + 1, aggregateByTime: false }) }}",
+        "method": "POST",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://api.hyperliquid.xyz/info"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "65fa0fab-a957-4288-9b63-0947afb0c7d0",
+      "name": "Fetch Hyperliquid Positions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1472,
+        -80
+      ],
+      "parameters": {
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ type: 'clearinghouseState', user: $('Load Sync State').first().json.hyperliquid_wallet }) }}",
+        "method": "POST",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://api.hyperliquid.xyz/info"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "459bf11b-efe4-44dd-a8d2-15ed384092bd",
+      "name": "Save Hyperliquid Fills",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1952,
+        -80
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($json.trades_body) }}",
+        "method": "POST",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://hgjzvddoyqyegygatiyd.supabase.co/rest/v1/rpc/ingest_trades"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "dc548975-d903-4ada-92a3-9b246021821b",
+      "name": "Save Hyperliquid Positions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2192,
+        -80
+      ],
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify($('Map Hyperliquid Data').first().json.positions_body) }}",
+        "method": "POST",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://hgjzvddoyqyegygatiyd.supabase.co/rest/v1/rpc/upsert_holdings"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "fb40a0a5-4936-413d-b769-0c51cb7e08d3",
+      "name": "No Wallet Reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1232,
+        120
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "no-wallet-reply-chat",
+              "name": "chat_id",
+              "type": "number",
+              "value": "={{ $('Build Context').first().json.chat_id }}"
+            },
+            {
+              "id": "no-wallet-reply-reply",
+              "name": "reply",
+              "type": "string",
+              "value": "🔗 Link your Invo wallet first: /wallet 0xYourAddress (Invo → Wallet → copy your address). Only the public address is needed; never send a private key or seed phrase."
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "mode": "manual",
+        "options": {}
+      }
+    },
+    {
+      "id": "d5fcca4a-d306-42bf-88b1-65803744574e",
+      "name": "Binance Daily Candles",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        992,
+        380
+      ],
+      "parameters": {
+        "method": "GET",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        },
+        "url": "=https://data-api.binance.vision/api/v3/klines?symbol={{ $('Market Request').first().json.binance_symbol }}&interval=1d&limit=250"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "475ee16a-95d2-4489-9539-384596650c5d",
+      "name": "Binance 4h Candles",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1232,
+        380
+      ],
+      "parameters": {
+        "method": "GET",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        },
+        "url": "=https://data-api.binance.vision/api/v3/klines?symbol={{ $('Market Request').first().json.binance_symbol }}&interval=4h&limit=200"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "3be68cee-9c07-4b56-8e74-4d0fc0cd902a",
+      "name": "Yahoo Daily Candles",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1472,
+        380
+      ],
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        },
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "url": "=https://query1.finance.yahoo.com/v8/finance/chart/{{ encodeURIComponent($('Market Request').first().json.yahoo_symbol) }}?range=1y&interval=1d"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "8076a1d2-ae81-4fe2-a645-db5fc56cf67a",
+      "name": "Hyperliquid Perp Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1712,
+        380
+      ],
+      "parameters": {
+        "contentType": "json",
+        "jsonBody": "{\"type\":\"metaAndAssetCtxs\"}",
+        "method": "POST",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://api.hyperliquid.xyz/info"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "0376849a-9ed4-4a87-a297-ad7357575b9a",
+      "name": "Fear & Greed Index",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1952,
+        380
+      ],
+      "parameters": {
+        "method": "GET",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        },
+        "url": "https://api.alternative.me/fng/?limit=30"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "ff16526a-5787-4e76-81b7-8856dcaa158c",
+      "name": "Crypto Global Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2192,
+        380
+      ],
+      "parameters": {
+        "method": "GET",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        },
+        "url": "https://api.coingecko.com/api/v3/global"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "9ed83109-01b9-4ebd-bced-d5288129c138",
+      "name": "Macro Tickers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2432,
+        380
+      ],
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        },
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "url": "https://query1.finance.yahoo.com/v7/finance/spark?symbols=%5EGSPC,%5EVIX,DX-Y.NYB,%5ETNX,GC%3DF,CL%3DF&range=1mo&interval=1d"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "7c9b988b-c979-4cd8-b81d-b4077213b102",
+      "name": "Google News Search",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        640
+      ],
+      "parameters": {
+        "options": {},
+        "url": "={{ $json.google_news_url }}"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "64f057d6-1a02-4028-ac56-d8787a5cec2e",
+      "name": "CoinDesk Headlines",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        640
+      ],
+      "parameters": {
+        "options": {},
+        "url": "https://www.coindesk.com/arc/outboundfeeds/rss/"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "f57307f6-874b-48ac-8fa4-8c32647f6781",
+      "name": "CNBC Markets Headlines",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        1472,
+        640
+      ],
+      "parameters": {
+        "options": {},
+        "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "95612d71-acda-4749-a429-554e19d17ef0",
+      "name": "Fetch Price History",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        992,
+        900
+      ],
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+            }
+          ]
+        },
+        "method": "GET",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchInterval": 250,
+              "batchSize": 4
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 15000
+        },
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "url": "={{ $json.url }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "3a6c47c1-475c-45f2-85b7-992098f96326",
+      "name": "Fetch Hyperliquid Marks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1232,
+        900
+      ],
+      "parameters": {
+        "contentType": "json",
+        "jsonBody": "{\"type\":\"metaAndAssetCtxs\"}",
+        "method": "POST",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 20000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "https://api.hyperliquid.xyz/info"
+      },
+      "onError": "continueRegularOutput",
+      "executeOnce": true
+    },
+    {
+      "id": "61682214-f4b1-4ad6-980a-74233ae6cdfd",
+      "name": "Load Recent Trades",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        900
+      ],
+      "parameters": {
+        "filterType": "manual",
+        "filters": {
+          "conditions": [
+            {
+              "condition": "eq",
+              "keyName": "telegram_id",
+              "keyValue": "={{ $('Build Context').first().json.telegram_id }}"
+            }
+          ]
+        },
+        "limit": 500,
+        "matchType": "allFilters",
+        "operation": "getAll",
+        "orderBy": "executed_at.desc",
+        "resource": "row",
+        "returnAll": false,
+        "tableId": "trades"
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "83de1c68-88bd-4bfa-b784-7bc5060eade6",
+      "name": "Report Only?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1952,
+        900
+      ],
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.route === 'risk' || !$json.has_holdings }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              }
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "56280961-8a1d-4b0a-9ebc-8879f96252b2",
+      "name": "Download Chart Image",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        752,
+        1160
+      ],
+      "parameters": {
+        "download": true,
+        "fileId": "={{ $json.file_id }}",
+        "operation": "get",
+        "resource": "file"
+      },
+      "webhookId": "2c99f7d5-4ed2-4313-8c47-b9d91598682a",
+      "credentials": {
+        "telegramApi": {
+          "id": "KPAeAW9ijpyEQokO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "id": "13f00997-8f20-40d3-a0f1-8740c0233d90",
+      "name": "Send Working Notice",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3152,
+        760
+      ],
+      "parameters": {
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        },
+        "chatId": "={{ $json.chat_id }}",
+        "operation": "sendMessage",
+        "resource": "message",
+        "text": "={{ ({ chart: '⏳ Reading your chart…', market: '⏳ Pulling market data for the analyst…', news: '⏳ Scanning the news…', analyze: '⏳ Convening the investor panel (Buffett, Dalio, Wood, Ackman)…', ask: '⏳ Thinking…' })[$json.mode] || '⏳ Working…' }} This runs on your own LangChain server and can take a minute or two."
+      },
+      "webhookId": "56af44d9-1e5b-4aaa-98a0-f563d5df9dbb",
+      "onError": "continueRegularOutput",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "KPAeAW9ijpyEQokO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "id": "224c1b4a-9077-409c-b616-09991f842562",
+      "name": "Ask LangChain Analyst",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        3152,
+        960
+      ],
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "contentType": "json",
+        "genericAuthType": "httpHeaderAuth",
+        "jsonBody": "={{ JSON.stringify({ input: { system: $json.system_prompt, prompt: $json.user_prompt, image_b64: $json.image_b64 || null, image_mime: $json.image_mime || 'image/jpeg' } }) }}",
+        "method": "POST",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchInterval": 0,
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 600000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "url": "http://YOUR-ORACLE-VM-IP:8000/analyst/invoke"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "ce04c22d-10da-48c6-88ad-8deeb4d681e7",
+      "name": "Log Analysis",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        3392,
+        1120
+      ],
+      "parameters": {
+        "dataToSend": "defineBelow",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "telegram_id",
+              "fieldValue": "={{ $('Prepare Agent Input').item.json.telegram_id }}"
+            },
+            {
+              "fieldId": "mode",
+              "fieldValue": "={{ $('Prepare Agent Input').item.json.mode }}"
+            },
+            {
+              "fieldId": "symbol",
+              "fieldValue": "={{ $('Prepare Agent Input').item.json.symbol || '' }}"
+            },
+            {
+              "fieldId": "request",
+              "fieldValue": "={{ String($('Prepare Agent Input').item.json.request || '').slice(0, 2000) }}"
+            },
+            {
+              "fieldId": "response",
+              "fieldValue": "={{ $json.output || ('ERROR: ' + JSON.stringify($json.error || $json.detail || 'no response')) }}"
+            },
+            {
+              "fieldId": "bias",
+              "fieldValue": "={{ (String($json.output || '').match(/BIAS:\\s*(Bullish|Bearish|Neutral)/i) || String($json.output || '').match(/VERDICT:\\s*([A-Za-z ]{3,20})/i) || [])[1] || '' }}"
+            },
+            {
+              "fieldId": "action",
+              "fieldValue": "={{ (String($json.output || '').match(/ACTION:\\s*(Buy|Add|Hold|Trim|Sell|Hedge|Wait)/i) || [])[1] || '' }}"
+            }
+          ]
+        },
+        "operation": "create",
+        "resource": "row",
+        "tableId": "analysis_log"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "34ac45d1-a19b-448d-819d-c7639587a1c7",
+      "name": "Send Telegram Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        4112,
+        0
+      ],
+      "parameters": {
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        },
+        "chatId": "={{ $json.chat_id }}",
+        "operation": "sendMessage",
+        "resource": "message",
+        "text": "={{ $json.text }}"
+      },
+      "webhookId": "aa431577-791d-4bc2-a153-ab43145f62d4",
+      "credentials": {
+        "telegramApi": {
+          "id": "KPAeAW9ijpyEQokO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "id": "5f2a7b59-7f11-49ff-a0a4-64d93cda231b",
+      "name": "Setup Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        260
+      ],
+      "parameters": {
+        "color": 4,
+        "content": "## Quant Hedgefund bot: setup\n1. **Supabase credential** (Host `https://hgjzvddoyqyegygatiyd.supabase.co`, Service Role Secret = the project's secret key) on every Supabase node and on the Save* HTTP nodes.\n2. **LangChain server**: set the URL on *Ask LangChain Analyst* and create a Header Auth credential **QHF LangChain API key** (Name `X-API-Key`, Value = key printed by `setup_oracle_vm.sh`).\n3. Lock the bot to yourself: Telegram Trigger, *Restrict to Chat IDs*.\n4. Prompts and investor personas live in the Supabase table `agent_skills`; edit them there, no workflow change needed.",
+        "height": 360,
+        "width": 620
+      }
+    },
+    {
+      "id": "5586d94b-f0fa-4681-bfde-230460732b1f",
+      "name": "Data Sources Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        1040
+      ],
+      "parameters": {
+        "color": 7,
+        "content": "## Data sources (free, no keys)\nBinance public spot data, Hyperliquid info API (funding, OI, Invo fills and positions), alternative.me Fear & Greed, CoinGecko global, Yahoo Finance charts, Google News / CoinDesk / CNBC RSS.",
+        "height": 200,
+        "width": 620
+      }
+    },
+    {
+      "id": "44ed2512-d419-4bca-8853-7711a5a2ba18",
+      "name": "Normalize Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        768
+      ],
+      "parameters": {
+        "jsCode": "// Turn any Telegram update into one routed item: command, args, and the file to download (if any).\nconst update = $input.first().json;\nconst msg = update.message || {};\nconst text = String(msg.text || msg.caption || '').trim();\nconst firstToken = text.split(/\\s+/)[0] || '';\nconst command = firstToken.startsWith('/') ? firstToken.split('@')[0].toLowerCase() : '';\nconst args = command ? text.slice(firstToken.length).trim() : text;\n\nconst photos = Array.isArray(msg.photo) ? msg.photo : [];\nconst doc = msg.document || null;\nconst docName = doc ? String(doc.file_name || '') : '';\nconst docMime = doc ? String(doc.mime_type || '') : '';\nconst isImageDoc = !!doc && docMime.startsWith('image/');\nconst isCsvDoc = !!doc && !isImageDoc && (/\\.(csv|txt)$/i.test(docName) || /csv|comma-separated/i.test(docMime));\n\n// Telegram lists photo sizes smallest first.\nlet fileId = '';\nif (photos.length) fileId = photos[photos.length - 1].file_id;\nelse if (doc) fileId = doc.file_id;\n\nconst COMMAND_ROUTES = {\n  '/start': 'help',\n  '/help': 'help',\n  '/wallet': 'set_wallet',\n  '/sync': 'sync',\n  '/market': 'market',\n  '/news': 'news',\n  '/analyze': 'analyze',\n  '/analyse': 'analyze',\n  '/risk': 'risk',\n};\n\nlet route;\nif (photos.length || isImageDoc) route = 'chart';\nelse if (isCsvDoc) route = 'import';\nelse if (doc) route = 'help';\nelse if (command === '/portfolio' || command === '/holdings') route = args ? 'save_holdings' : 'view_portfolio';\nelse if (command) route = COMMAND_ROUTES[command] || 'help';\nelse route = text ? 'ask' : 'help';\n\nreturn [{\n  json: {\n    chat_id: msg.chat ? msg.chat.id : null,\n    telegram_id: msg.from ? msg.from.id : (msg.chat ? msg.chat.id : null),\n    username: msg.from ? (msg.from.username || msg.from.first_name || '') : '',\n    text,\n    command,\n    args,\n    route,\n    file_id: fileId,\n    file_name: docName,\n  },\n}];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "2a871141-ddd9-42b9-b4bc-20d01b13986d",
+      "name": "Build Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        768
+      ],
+      "parameters": {
+        "jsCode": "// Combine the message with the analyst skills and the user's holdings, plus reference data\n// that the downstream nodes share (symbol classification and Yahoo Finance ticker mapping).\nconst base = $('Normalize Message').first().json;\n\nconst skills = {};\nfor (const it of $('Load Skills').all()) {\n  const s = it.json || {};\n  if (s.slug && s.body && s.enabled !== false) skills[s.slug] = s.body;\n}\n\nconst holdings = $input.all().map((i) => i.json).filter((h) => h && h.symbol);\n\nconst ref = {\n  crypto: ['BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'ADA', 'DOGE', 'AVAX', 'DOT', 'LINK', 'MATIC', 'POL', 'LTC', 'BCH',\n    'ATOM', 'UNI', 'AAVE', 'ARB', 'OP', 'SUI', 'APT', 'SEI', 'TIA', 'INJ', 'NEAR', 'TON', 'TRX', 'XLM', 'HYPE',\n    'PEPE', 'KPEPE', 'WIF', 'BONK', 'SHIB', 'FET', 'RNDR', 'RENDER', 'TAO', 'ENA', 'JUP', 'PYTH', 'ONDO', 'LDO',\n    'MKR', 'CRV', 'FIL', 'ICP', 'ETC', 'HBAR', 'ALGO', 'VET', 'XMR', 'KAS', 'STX', 'IMX', 'GALA', 'SAND', 'MANA',\n    'USDT', 'USDC'],\n  cryptoNames: {\n    BTC: 'Bitcoin', ETH: 'Ethereum', SOL: 'Solana', BNB: 'BNB', XRP: 'XRP', ADA: 'Cardano', DOGE: 'Dogecoin',\n    AVAX: 'Avalanche', DOT: 'Polkadot', LINK: 'Chainlink', LTC: 'Litecoin', ARB: 'Arbitrum', OP: 'Optimism',\n    SUI: 'Sui', HYPE: 'Hyperliquid', TON: 'Toncoin', NEAR: 'NEAR Protocol', TAO: 'Bittensor', ENA: 'Ethena',\n  },\n  // Google Finance / common exchange codes -> Yahoo Finance suffix and trading currency.\n  exchanges: {\n    NASDAQ: ['', 'USD'], NYSE: ['', 'USD'], NYSEARCA: ['', 'USD'], NYSEAMERICAN: ['', 'USD'], BATS: ['', 'USD'],\n    OTCMKTS: ['', 'USD'], JSE: ['.JO', 'ZAR'], LON: ['.L', 'GBP'], LSE: ['.L', 'GBP'], TSE: ['.T', 'JPY'],\n    TYO: ['.T', 'JPY'], HKG: ['.HK', 'HKD'], ASX: ['.AX', 'AUD'], TSX: ['.TO', 'CAD'], TSXV: ['.V', 'CAD'],\n    FRA: ['.F', 'EUR'], ETR: ['.DE', 'EUR'], XETRA: ['.DE', 'EUR'], EPA: ['.PA', 'EUR'], AMS: ['.AS', 'EUR'],\n    BIT: ['.MI', 'EUR'], BME: ['.MC', 'EUR'], SWX: ['.SW', 'CHF'], VTX: ['.SW', 'CHF'], NSE: ['.NS', 'INR'],\n    BOM: ['.BO', 'INR'], STO: ['.ST', 'SEK'], CPH: ['.CO', 'DKK'], OSL: ['.OL', 'NOK'], KRX: ['.KS', 'KRW'],\n    TPE: ['.TW', 'TWD'], SGX: ['.SI', 'SGD'], NZE: ['.NZ', 'NZD'], BVMF: ['.SA', 'BRL'],\n  },\n  suffixCurrency: {\n    '.JO': 'ZAR', '.L': 'GBP', '.T': 'JPY', '.HK': 'HKD', '.AX': 'AUD', '.TO': 'CAD', '.V': 'CAD', '.F': 'EUR',\n    '.DE': 'EUR', '.PA': 'EUR', '.AS': 'EUR', '.MI': 'EUR', '.MC': 'EUR', '.SW': 'CHF', '.NS': 'INR', '.BO': 'INR',\n    '.ST': 'SEK', '.CO': 'DKK', '.OL': 'NOK', '.KS': 'KRW', '.TW': 'TWD', '.SI': 'SGD', '.NZ': 'NZD', '.SA': 'BRL',\n  },\n  commodities: { GOLD: 'GC=F', SILVER: 'SI=F', OIL: 'CL=F', WTI: 'CL=F', BRENT: 'BZ=F', NATGAS: 'NG=F', COPPER: 'HG=F' },\n};\n\nreturn [{ json: { ...base, skills, holdings, ref } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "7974d3b6-f871-4ea9-b6c9-131d4e680a75",
+      "name": "Parse Holdings Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -880
+      ],
+      "parameters": {
+        "jsCode": "// Parse \"/portfolio NASDAQ:AAPL:10@182.5, NPN.JO:3@2900, BTC:0.25\" into holdings rows.\nconst ctx = $input.first().json;\nconst ref = ctx.ref;\nconst crypto = new Set(ref.crypto);\n\nconst rows = [];\nconst invalid = [];\nfor (const raw of String(ctx.args || '').split(/[,;\\n]+/)) {\n  const part = raw.trim();\n  if (!part) continue;\n  const m = part.match(/^([A-Za-z0-9.:=^\\-]+?)\\s*[:\\s]\\s*(-?\\d+(?:\\.\\d+)?)\\s*(?:@\\s*(\\d+(?:\\.\\d+)?))?$/);\n  if (!m) {\n    invalid.push(part);\n    continue;\n  }\n  let symbol = m[1].toUpperCase();\n  let exchange = null;\n  const colon = symbol.lastIndexOf(':');\n  if (colon > 0) {\n    exchange = symbol.slice(0, colon);\n    symbol = symbol.slice(colon + 1);\n  }\n  const suffix = (symbol.match(/\\.[A-Z]+$/) || [''])[0];\n  let currency = 'USD';\n  if (exchange && ref.exchanges[exchange]) currency = ref.exchanges[exchange][1];\n  else if (ref.suffixCurrency[suffix]) currency = ref.suffixCurrency[suffix];\n\n  let assetClass = 'stock';\n  if (crypto.has(symbol)) assetClass = 'crypto';\n  else if (ref.commodities[symbol] || /=F$/.test(symbol)) assetClass = 'commodity';\n\n  rows.push({\n    symbol,\n    exchange,\n    quantity: Number(m[2]),\n    avg_cost: m[3] ? Number(m[3]) : null,\n    currency: assetClass === 'crypto' ? 'USD' : currency,\n    asset_class: assetClass,\n  });\n}\n\nreturn [{\n  json: {\n    chat_id: ctx.chat_id,\n    rows,\n    invalid,\n    body: {\n      p_telegram_id: ctx.telegram_id,\n      p_username: ctx.username,\n      p_source: 'manual',\n      p_rows: rows,\n      p_replace: false,\n    },\n  },\n}];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "4d7053ec-0ca6-4dac-bf71-a60aef2295b5",
+      "name": "Holdings Saved Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        -880
+      ],
+      "parameters": {
+        "jsCode": "const parsed = $('Parse Holdings Command').first().json;\nconst res = $input.first().json;\n\nlet reply;\nif (!parsed.rows.length) {\n  reply = '⚠️ Nothing saved. Format:\\n/portfolio NASDAQ:AAPL:10@182.5, NPN.JO:3@2900, BTC:0.25\\n(SYMBOL:QUANTITY@AVERAGE_COST, cost optional)';\n} else if (res.message || res.error) {\n  reply = '❌ Could not save holdings: ' + (res.message || JSON.stringify(res.error));\n} else {\n  const list = parsed.rows\n    .map((r) => '• ' + (r.exchange ? r.exchange + ':' : '') + r.symbol + ' ' + r.quantity + (r.avg_cost != null ? ' @ ' + r.avg_cost + ' ' + r.currency : ''))\n    .join('\\n');\n  reply = '✅ Saved ' + parsed.rows.length + ' holding(s):\\n' + list + '\\n\\nView them with /portfolio or get a review with /analyze.';\n}\nif (parsed.invalid.length) reply += '\\n\\n⚠️ Skipped (could not read): ' + parsed.invalid.join(', ');\n\nreturn [{ json: { chat_id: parsed.chat_id, reply } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "72fbe6c8-df9b-4b16-98f0-c4b7513c9ff3",
+      "name": "Format Portfolio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -660
+      ],
+      "parameters": {
+        "jsCode": "const ctx = $input.first().json;\nconst rows = ctx.holdings || [];\n\nconst fmt = (n, dp) => {\n  const v = Number(n);\n  if (!isFinite(v)) return '-';\n  return v.toLocaleString('en-US', { maximumFractionDigits: dp === undefined ? 4 : dp });\n};\n\nlet reply;\nif (!rows.length) {\n  reply = '📊 No holdings stored yet.\\n\\n'\n    + 'Add Google Finance holdings:\\n/portfolio NASDAQ:AAPL:10@182.5, NPN.JO:3@2900\\n'\n    + 'or send your holdings as a CSV with the caption /import google\\n\\n'\n    + 'Link Invo: /wallet 0xYourAddress then /sync';\n} else {\n  const LABELS = { google_finance: 'Google Finance', invo: 'Invo / Hyperliquid', binance: 'Binance', manual: 'Manual' };\n  const bySource = {};\n  for (const r of rows) (bySource[r.source] = bySource[r.source] || []).push(r);\n  const sections = [];\n  for (const [source, list] of Object.entries(bySource)) {\n    const lines = list.map((r) => {\n      if (r.asset_class === 'cash') return '• ' + r.symbol + ' equity ' + fmt(r.quantity, 2);\n      if (r.asset_class === 'crypto_perp') {\n        const side = Number(r.quantity) < 0 ? 'SHORT' : 'LONG';\n        return '• ' + r.symbol + '-PERP ' + side + ' ' + fmt(Math.abs(r.quantity)) + ' @ ' + fmt(r.avg_cost, 2)\n          + (r.leverage ? ' | ' + fmt(r.leverage, 1) + 'x' : '')\n          + (r.unrealized_pnl != null ? ' | uPnL ' + fmt(r.unrealized_pnl, 2) : '')\n          + (r.liquidation_price ? ' | liq ' + fmt(r.liquidation_price, 2) : '');\n      }\n      return '• ' + (r.exchange ? r.exchange + ':' : '') + r.symbol + ' ' + fmt(r.quantity)\n        + (r.avg_cost != null ? ' @ ' + fmt(r.avg_cost, 2) + ' ' + r.currency : '');\n    });\n    sections.push((LABELS[source] || source) + '\\n' + lines.join('\\n'));\n  }\n  const lastUpdate = rows.map((r) => r.updated_at).sort().pop();\n  reply = '📊 Your holdings (' + rows.length + ')\\n\\n' + sections.join('\\n\\n')\n    + '\\n\\nLast updated ' + String(lastUpdate || '').slice(0, 16).replace('T', ' ') + ' UTC'\n    + '\\n💡 /analyze for the investor panel, /risk for metrics';\n}\n\nreturn [{ json: { chat_id: ctx.chat_id, reply } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "99a68d50-8f57-4ffe-b29f-beb16b3a45d8",
+      "name": "Map Import Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        -440
+      ],
+      "parameters": {
+        "jsCode": "// Map an uploaded CSV to holdings (Google Finance style) or trade history (Hyperliquid/Invo, Binance, generic).\n// Caption hints: \"/import google\", \"/import invo\", \"/import binance\".\nconst ctx = $('Build Context').first().json;\nconst ref = ctx.ref;\nconst crypto = new Set(ref.crypto);\nconst records = $input.all().map((i) => i.json).filter((r) => r && Object.keys(r).length);\nconst hint = String(ctx.args || ctx.text || '').toLowerCase();\n\nconst norm = (k) => String(k).toLowerCase().replace(/[^a-z0-9]/g, '');\nconst pick = (rec, names) => {\n  for (const [k, v] of Object.entries(rec)) {\n    if (names.includes(norm(k)) && v !== '' && v !== null && v !== undefined) return v;\n  }\n  return null;\n};\nconst num = (v) => {\n  if (v === null || v === undefined) return null;\n  if (typeof v === 'number') return v;\n  const m = String(v).replace(/,/g, '').match(/-?\\d+(?:\\.\\d+)?(?:e-?\\d+)?/i);\n  return m ? Number(m[0]) : null;\n};\nconst parseTime = (v) => {\n  if (v === null || v === undefined || v === '') return null;\n  if (typeof v === 'number' || /^\\d{10,13}$/.test(String(v))) {\n    const n = Number(v);\n    return new Date(n < 1e12 ? n * 1000 : n).toISOString();\n  }\n  const s = String(v).trim();\n  const direct = Date.parse(s.replace(' - ', ' '));\n  if (!isNaN(direct)) return new Date(direct).toISOString();\n  // dd/mm/yyyy or mm/dd/yyyy with optional time\n  const m = s.match(/^(\\d{1,2})[\\/.\\-](\\d{1,2})[\\/.\\-](\\d{4})(?:\\D+(\\d{1,2}):(\\d{2})(?::(\\d{2}))?)?/);\n  if (m) {\n    let a = Number(m[1]);\n    let b = Number(m[2]);\n    const month = a > 12 ? b : a;\n    const day = a > 12 ? a : b;\n    const d = Date.UTC(Number(m[3]), month - 1, day, Number(m[4] || 0), Number(m[5] || 0), Number(m[6] || 0));\n    return new Date(d).toISOString();\n  }\n  return null;\n};\nconst cleanSymbol = (s) => {\n  let sym = String(s || '').trim().toUpperCase();\n  sym = sym.split('/')[0].replace(/-PERP$/, '').replace(/^\\$/, '');\n  if (!sym.includes(':') && /^[A-Z0-9]+(USDT|USDC|BUSD|FDUSD|TUSD)$/.test(sym)) sym = sym.replace(/(USDT|USDC|BUSD|FDUSD|TUSD)$/, '');\n  return sym;\n};\nconst sideOf = (rawSide, rawDir) => {\n  const s = String(rawDir || rawSide || '').toLowerCase();\n  if (!s) return null;\n  if (s.includes('short > long') || s.includes('close short') || s.includes('open long')) return 'buy';\n  if (s.includes('long > short') || s.includes('close long') || s.includes('open short')) return 'sell';\n  if (/^(b|buy|bid|long)/.test(s)) return 'buy';\n  if (/^(a|s|sell|ask|short)/.test(s)) return 'sell';\n  return null;\n};\n\nconst COLS = {\n  symbol: ['symbol', 'ticker', 'coin', 'asset', 'instrument', 'pair', 'security', 'stock', 'market'],\n  quantity: ['quantity', 'qty', 'shares', 'units', 'amount', 'size', 'sz', 'executed', 'filled', 'position', 'holdings'],\n  price: ['price', 'px', 'executionprice', 'fillprice', 'tradeprice', 'avgprice', 'averageprice'],\n  avgCost: ['averagecost', 'avgcost', 'averageprice', 'avgprice', 'costpershare', 'costbasispershare', 'purchaseprice', 'buyprice', 'entryprice', 'price'],\n  exchange: ['exchange', 'exchangename', 'listing'],\n  currency: ['currency', 'ccy'],\n  time: ['time', 'date', 'datetime', 'dateutc', 'timestamp', 'executedat', 'tradedate', 'filledtime', 'tradetime', 'createdat'],\n  side: ['side', 'type', 'action', 'buysell', 'tradetype'],\n  dir: ['dir', 'direction'],\n  fee: ['fee', 'fees', 'commission'],\n  feeCurrency: ['feecoin', 'feecurrency', 'feeasset', 'feetoken'],\n  pnl: ['closedpnl', 'realizedpnl', 'realisedpnl', 'pnl', 'profit'],\n  id: ['tradeid', 'tid', 'id', 'fillid', 'transactionid', 'hash'],\n};\n\nconst header = records.length ? Object.keys(records[0]).map(norm) : [];\nconst has = (names) => header.some((h) => names.includes(h));\nconst kind = has(COLS.time) && (has(COLS.side) || has(COLS.dir)) && has(COLS.price) ? 'trades' : 'holdings';\n\nlet source;\nif (hint.includes('invo') || hint.includes('hyper')) source = 'invo';\nelse if (hint.includes('binance')) source = 'binance';\nelse if (hint.includes('google')) source = 'google_finance';\nelse source = kind === 'trades' ? 'csv' : 'google_finance';\n\nconst rows = [];\nconst skipped = [];\nrecords.forEach((rec, idx) => {\n  const symRaw = pick(rec, COLS.symbol);\n  if (!symRaw) return skipped.push(idx + 2);\n  if (kind === 'trades') {\n    const symbol = cleanSymbol(symRaw);\n    const side = sideOf(pick(rec, COLS.side), pick(rec, COLS.dir));\n    const quantity = Math.abs(num(pick(rec, COLS.quantity)) || 0);\n    const price = num(pick(rec, COLS.price));\n    const executedAt = parseTime(pick(rec, COLS.time));\n    if (!symbol || !side || !quantity || price === null || !executedAt) return skipped.push(idx + 2);\n    const explicitId = pick(rec, COLS.id);\n    rows.push({\n      external_id: explicitId ? String(explicitId) : ['csv', symbol, side, quantity, price, executedAt].join('|'),\n      symbol,\n      side,\n      direction: pick(rec, COLS.dir) || null,\n      quantity,\n      price,\n      fee: num(pick(rec, COLS.fee)) || 0,\n      fee_currency: pick(rec, COLS.feeCurrency),\n      realized_pnl: num(pick(rec, COLS.pnl)),\n      executed_at: executedAt,\n      raw: rec,\n    });\n  } else {\n    let symbol = String(symRaw).trim().toUpperCase();\n    let exchange = pick(rec, COLS.exchange);\n    const colon = symbol.lastIndexOf(':');\n    if (colon > 0) {\n      exchange = exchange || symbol.slice(0, colon);\n      symbol = symbol.slice(colon + 1);\n    }\n    exchange = exchange ? String(exchange).toUpperCase() : null;\n    const quantity = num(pick(rec, COLS.quantity));\n    if (!symbol || quantity === null) return skipped.push(idx + 2);\n    const suffix = (symbol.match(/\\.[A-Z]+$/) || [''])[0];\n    const isCrypto = crypto.has(cleanSymbol(symbol)) || source === 'invo' || source === 'binance';\n    if (isCrypto) symbol = cleanSymbol(symbol);\n    const currency = pick(rec, COLS.currency)\n      || (exchange && ref.exchanges[exchange] ? ref.exchanges[exchange][1] : null)\n      || ref.suffixCurrency[suffix]\n      || 'USD';\n    rows.push({\n      symbol,\n      exchange,\n      quantity,\n      avg_cost: num(pick(rec, COLS.avgCost)),\n      currency: String(currency).toUpperCase(),\n      asset_class: isCrypto ? 'crypto' : (ref.commodities[symbol] || /=F$/.test(symbol) ? 'commodity' : 'stock'),\n    });\n  }\n});\n\nconst rpc = kind === 'trades' ? 'ingest_trades' : 'upsert_holdings';\nconst body = kind === 'trades'\n  ? { p_telegram_id: ctx.telegram_id, p_username: ctx.username, p_source: source, p_rows: rows }\n  : { p_telegram_id: ctx.telegram_id, p_username: ctx.username, p_source: source, p_rows: rows, p_replace: rows.length > 0 };\n\nreturn [{\n  json: {\n    chat_id: ctx.chat_id,\n    kind,\n    source,\n    rpc,\n    body,\n    valid: rows.length,\n    skipped,\n    columns: records.length ? Object.keys(records[0]) : [],\n    file_name: ctx.file_name,\n  },\n}];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "c1cda0c7-18ad-4b96-9357-d2890488d0fc",
+      "name": "Import Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        -440
+      ],
+      "parameters": {
+        "jsCode": "const plan = $('Map Import Rows').first().json;\nconst res = $input.first().json;\nconst LABELS = { google_finance: 'Google Finance', invo: 'Invo / Hyperliquid', binance: 'Binance', csv: 'CSV', manual: 'Manual' };\n\nlet reply;\nif (!plan.valid) {\n  reply = '⚠️ No usable rows found in ' + (plan.file_name || 'the file') + '.\\n'\n    + 'Columns seen: ' + (plan.columns.join(', ') || 'none') + '\\n\\n'\n    + 'Holdings CSV needs: Symbol, Quantity (optional: Average cost, Exchange, Currency).\\n'\n    + 'Trades CSV needs: Time/Date, Symbol/Coin, Side/Dir, Price/Px, Quantity/Size.';\n} else if (res.message || res.error) {\n  reply = '❌ Import failed: ' + (res.message || JSON.stringify(res.error));\n} else if (plan.kind === 'trades') {\n  reply = '✅ Imported ' + (res.inserted ?? 0) + ' new trade(s) from ' + plan.valid + ' row(s) as ' + (LABELS[plan.source] || plan.source)\n    + ' (duplicates are skipped automatically).';\n} else {\n  reply = '✅ Replaced your ' + (LABELS[plan.source] || plan.source) + ' holdings with ' + (res.upserted ?? plan.valid) + ' position(s)'\n    + (res.deleted ? ' and removed ' + res.deleted + ' that are no longer in the file' : '') + '.\\nSee them with /portfolio.';\n}\nif (plan.valid && plan.skipped.length) reply += '\\n⚠️ Skipped CSV line(s): ' + plan.skipped.slice(0, 20).join(', ') + (plan.skipped.length > 20 ? ' …' : '');\n\nreturn [{ json: { chat_id: plan.chat_id, reply } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "8cfd0692-e4e8-4cc2-9e84-401c796d215e",
+      "name": "Wallet Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        -220
+      ],
+      "parameters": {
+        "jsCode": "const ctx = $('Build Context').first().json;\nconst res = $input.first().json;\n\nlet reply;\nif (res.wallet) {\n  reply = '✅ Linked Hyperliquid wallet ' + res.wallet.slice(0, 6) + '…' + res.wallet.slice(-4)\n    + '.\\nSend /sync to import your Invo trade history and open positions.';\n} else {\n  reply = '❌ ' + (res.message || 'Could not save the wallet.')\n    + '\\n\\nUse your PUBLIC address only, e.g. /wallet 0x1234…abcd (Invo → Wallet → copy address). Never send a private key or seed phrase.';\n}\n\nreturn [{ json: { chat_id: ctx.chat_id, reply } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "b5bbfed8-c26d-4b7d-ac83-479f1910d3a0",
+      "name": "Map Hyperliquid Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        -80
+      ],
+      "parameters": {
+        "jsCode": "// Map Hyperliquid fills (what Invo executed) to trade rows, and the clearinghouse state to holdings.\nconst ctx = $('Build Context').first().json;\nconst wallet = $('Load Sync State').first().json.hyperliquid_wallet;\n\nconst parse = (v) => {\n  if (v === null || v === undefined) return null;\n  if (typeof v !== 'string') return v;\n  try { return JSON.parse(v); } catch (e) { return null; }\n};\n\nconst fillsRaw = $('Fetch Hyperliquid Fills').first().json;\nconst fills = parse(fillsRaw.data);\nconst fillsOk = Array.isArray(fills);\n\nconst stateRaw = $('Fetch Hyperliquid Positions').first().json;\nconst state = parse(stateRaw.data !== undefined ? stateRaw.data : stateRaw);\nconst stateOk = !!state && Array.isArray(state.assetPositions);\n\nconst trades = (fillsOk ? fills : []).map((f) => ({\n  external_id: String(f.tid !== undefined ? f.tid : f.hash + ':' + f.time),\n  symbol: String(f.coin || '').toUpperCase(),\n  side: f.side === 'B' ? 'buy' : 'sell',\n  direction: f.dir || null,\n  quantity: Number(f.sz),\n  price: Number(f.px),\n  fee: Number(f.fee || 0),\n  fee_currency: f.feeToken || 'USDC',\n  realized_pnl: f.closedPnl !== undefined ? Number(f.closedPnl) : null,\n  executed_at: new Date(Number(f.time)).toISOString(),\n  raw: f,\n}));\n\nconst positions = [];\nlet accountValue = null;\nif (stateOk) {\n  for (const ap of state.assetPositions) {\n    const p = ap.position || {};\n    if (!p.coin || Number(p.szi) === 0) continue;\n    positions.push({\n      symbol: String(p.coin).toUpperCase(),\n      asset_class: 'crypto_perp',\n      quantity: Number(p.szi),\n      avg_cost: p.entryPx !== undefined ? Number(p.entryPx) : null,\n      currency: 'USD',\n      leverage: p.leverage && p.leverage.value !== undefined ? Number(p.leverage.value) : null,\n      liquidation_price: p.liquidationPx ? Number(p.liquidationPx) : null,\n      unrealized_pnl: p.unrealizedPnl !== undefined ? Number(p.unrealizedPnl) : null,\n    });\n  }\n  accountValue = state.marginSummary ? Number(state.marginSummary.accountValue) : null;\n  if (accountValue !== null && isFinite(accountValue)) {\n    positions.push({ symbol: 'USDC', asset_class: 'cash', quantity: accountValue, avg_cost: 1, currency: 'USD' });\n  }\n}\n\nconst realized = trades.reduce((s, t) => s + (t.realized_pnl || 0), 0);\nconst fees = trades.reduce((s, t) => s + (t.fee || 0), 0);\n\nreturn [{\n  json: {\n    chat_id: ctx.chat_id,\n    wallet,\n    fills_ok: fillsOk,\n    state_ok: stateOk,\n    fills_error: fillsOk ? null : String(fillsRaw.data || fillsRaw.error && fillsRaw.error.message || 'no response').slice(0, 200),\n    fill_count: trades.length,\n    more_available: trades.length >= 2000,\n    position_count: positions.filter((p) => p.asset_class === 'crypto_perp').length,\n    account_value: accountValue,\n    realized_in_batch: realized,\n    fees_in_batch: fees,\n    positions,\n    trades_body: { p_telegram_id: ctx.telegram_id, p_username: ctx.username, p_source: 'invo', p_rows: trades },\n    // Only replace stored positions when Hyperliquid answered; otherwise leave them untouched.\n    positions_body: { p_telegram_id: ctx.telegram_id, p_username: ctx.username, p_source: 'invo', p_rows: stateOk ? positions : [], p_replace: stateOk },\n  },\n}];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "18a630a3-6f96-4e9e-9a4f-2baed34218fb",
+      "name": "Sync Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        -80
+      ],
+      "parameters": {
+        "jsCode": "const m = $('Map Hyperliquid Data').first().json;\nconst saved = $('Save Hyperliquid Fills').first().json;\nconst fmt = (n, dp) => (isFinite(Number(n)) ? Number(n).toLocaleString('en-US', { maximumFractionDigits: dp }) : '-');\n\nconst lines = ['🔄 Invo / Hyperliquid sync for ' + m.wallet.slice(0, 6) + '…' + m.wallet.slice(-4)];\nif (m.fills_ok) {\n  lines.push('• Fills fetched: ' + m.fill_count + ', new trades stored: ' + (saved.inserted ?? (saved.message ? 'error: ' + saved.message : 0)));\n  if (m.fill_count) lines.push('• Realized PnL in this batch: ' + fmt(m.realized_in_batch, 2) + ' USDC, fees ' + fmt(m.fees_in_batch, 2));\n  if (m.more_available) lines.push('• More history is available. Send /sync again to continue.');\n} else {\n  lines.push('• ⚠️ Could not read fills: ' + m.fills_error);\n}\nif (m.state_ok) {\n  lines.push('• Open perp positions: ' + m.position_count + (m.account_value !== null ? ', account equity ' + fmt(m.account_value, 2) + ' USDC' : ''));\n  for (const p of m.positions.filter((x) => x.asset_class === 'crypto_perp')) {\n    lines.push('   ' + p.symbol + ' ' + (p.quantity < 0 ? 'SHORT ' : 'LONG ') + fmt(Math.abs(p.quantity), 4) + ' @ ' + fmt(p.avg_cost, 2)\n      + (p.leverage ? ' ' + fmt(p.leverage, 1) + 'x' : '') + (p.liquidation_price ? ' liq ' + fmt(p.liquidation_price, 2) : ''));\n  }\n} else {\n  lines.push('• ⚠️ Could not read open positions; stored positions were left unchanged.');\n}\nif (m.fills_ok && !m.fill_count && m.state_ok && !m.position_count && !m.account_value) {\n  lines.push('\\nNothing found for this address. Check it is the wallet address shown in Invo (Wallet → Receive/Deposit).');\n}\nlines.push('\\n/portfolio to view, /analyze for the investor panel.');\n\nreturn [{ json: { chat_id: m.chat_id, reply: lines.join('\\n') } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "bd49c6ae-8b54-4697-b714-4794235fe75c",
+      "name": "Market Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        380
+      ],
+      "parameters": {
+        "jsCode": "const ctx = $input.first().json;\nconst crypto = new Set(ctx.ref.crypto);\n\nlet symbol = String(ctx.args || '').trim().split(/\\s+/)[0].toUpperCase().replace(/^\\$/, '');\nsymbol = symbol.replace(/[-\\/]?(USDT|USDC|PERP)$/, '');\nif (!symbol || symbol === 'USD') symbol = 'BTC';\nif (crypto.has(symbol.replace(/-USD$/, ''))) symbol = symbol.replace(/-USD$/, '');\nconst isCrypto = crypto.has(symbol);\nconst yahooSymbol = isCrypto ? symbol + '-USD' : (ctx.ref.commodities[symbol] || symbol);\n\nreturn [{\n  json: {\n    symbol,\n    is_crypto: isCrypto,\n    binance_symbol: (isCrypto ? symbol : symbol.replace(/[^A-Z0-9]/g, '')) + 'USDT',\n    yahoo_symbol: yahooSymbol,\n  },\n}];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "78086512-243f-4c71-a177-64e964b5b6a4",
+      "name": "Compute Market Snapshot",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        380
+      ],
+      "parameters": {
+        "jsCode": "// Turn the raw API responses into a compact, pre-computed snapshot for the analyst.\nconst ctx = $('Build Context').first().json;\nconst req = $('Market Request').first().json;\n\nconst body = (name) => {\n  try {\n    const j = $(name).first().json;\n    const v = j.data !== undefined ? j.data : j;\n    return typeof v === 'string' ? JSON.parse(v) : v;\n  } catch (e) {\n    return null;\n  }\n};\nconst round = (v, dp) => (v === null || v === undefined || !isFinite(v) ? null : Number(Number(v).toFixed(dp === undefined ? 2 : dp)));\nconst pct = (a, b) => (a && b ? (a / b - 1) * 100 : null);\n\nconst sma = (xs, n) => (xs.length >= n ? xs.slice(-n).reduce((s, x) => s + x, 0) / n : null);\nconst rsi = (xs, n) => {\n  if (xs.length <= n) return null;\n  let gain = 0;\n  let loss = 0;\n  for (let i = 1; i <= n; i++) {\n    const d = xs[i] - xs[i - 1];\n    if (d >= 0) gain += d; else loss -= d;\n  }\n  gain /= n;\n  loss /= n;\n  for (let i = n + 1; i < xs.length; i++) {\n    const d = xs[i] - xs[i - 1];\n    gain = (gain * (n - 1) + Math.max(d, 0)) / n;\n    loss = (loss * (n - 1) + Math.max(-d, 0)) / n;\n  }\n  return loss === 0 ? 100 : 100 - 100 / (1 + gain / loss);\n};\nconst atr = (c, n) => {\n  if (c.length <= n) return null;\n  const trs = [];\n  for (let i = 1; i < c.length; i++) {\n    trs.push(Math.max(c[i].h - c[i].l, Math.abs(c[i].h - c[i - 1].c), Math.abs(c[i].l - c[i - 1].c)));\n  }\n  let a = trs.slice(0, n).reduce((s, x) => s + x, 0) / n;\n  for (let i = n; i < trs.length; i++) a = (a * (n - 1) + trs[i]) / n;\n  return a;\n};\n\nconst fromBinance = (raw) => (Array.isArray(raw) ? raw.map((k) => ({ t: Number(k[0]), o: Number(k[1]), h: Number(k[2]), l: Number(k[3]), c: Number(k[4]), v: Number(k[5]) })) : []);\nconst fromYahoo = (raw) => {\n  const r = raw && raw.chart && raw.chart.result && raw.chart.result[0];\n  if (!r || !r.timestamp) return { candles: [], currency: null };\n  const q = r.indicators.quote[0];\n  const candles = [];\n  r.timestamp.forEach((t, i) => {\n    if (q.close[i] === null || q.close[i] === undefined) return;\n    candles.push({ t: t * 1000, o: q.open[i], h: q.high[i], l: q.low[i], c: q.close[i], v: q.volume ? q.volume[i] : null });\n  });\n  return { candles, currency: r.meta && r.meta.currency };\n};\n\nconst indicators = (candles, label, periodsPerYear) => {\n  if (candles.length < 20) return null;\n  const closes = candles.map((k) => k.c);\n  const last = closes[closes.length - 1];\n  const back = (n) => (closes.length > n ? closes[closes.length - 1 - n] : null);\n  const s20 = sma(closes, 20);\n  const s50 = sma(closes, 50);\n  const s200 = sma(closes, 200);\n  const s50prev = closes.length >= 55 ? sma(closes.slice(0, -5), 50) : null;\n  const s200prev = closes.length >= 205 ? sma(closes.slice(0, -5), 200) : null;\n  const window = closes.slice(-Math.min(closes.length, periodsPerYear));\n  const hi = Math.max(...window);\n  const lo = Math.min(...window);\n  const vols = candles.slice(-21, -1).map((k) => k.v).filter((v) => v);\n  const avgVol = vols.length ? vols.reduce((s, v) => s + v, 0) / vols.length : null;\n  const lastCompleteVol = candles.length > 1 ? candles[candles.length - 2].v : null;\n  const a = atr(candles, 14);\n  return {\n    timeframe: label,\n    bars: candles.length,\n    last_close: round(last, 6),\n    sma20: round(s20, 6),\n    sma50: round(s50, 6),\n    sma200: round(s200, 6),\n    price_vs_sma50_pct: round(pct(last, s50)),\n    price_vs_sma200_pct: round(pct(last, s200)),\n    sma50_slope_5bars_pct: round(pct(s50, s50prev), 3),\n    sma200_slope_5bars_pct: round(pct(s200, s200prev), 3),\n    golden_cross: s50 && s200 ? s50 > s200 : null,\n    rsi14: round(rsi(closes, 14), 1),\n    rsi14_5bars_ago: round(rsi(closes.slice(0, -5), 14), 1),\n    atr14_pct: round(a ? (a / last) * 100 : null),\n    return_1bar_pct: round(pct(last, back(1))),\n    return_7bars_pct: round(pct(last, back(7))),\n    return_30bars_pct: round(pct(last, back(30))),\n    return_90bars_pct: round(pct(last, back(90))),\n    range_high: round(hi, 6),\n    range_low: round(lo, 6),\n    from_range_high_pct: round(pct(last, hi)),\n    from_range_low_pct: round(pct(last, lo)),\n    last_complete_volume_vs_20avg: round(avgVol && lastCompleteVol ? lastCompleteVol / avgVol : null),\n  };\n};\n\nconst daily = fromBinance(body('Binance Daily Candles'));\nconst fourHour = fromBinance(body('Binance 4h Candles'));\nconst yahoo = fromYahoo(body('Yahoo Daily Candles'));\nconst useBinance = daily.length >= 20;\n\nconst snapshot = {\n  symbol: req.symbol,\n  as_of_utc: new Date().toISOString().slice(0, 16).replace('T', ' '),\n  price_source: useBinance ? 'Binance spot ' + req.binance_symbol : (yahoo.candles.length ? 'Yahoo Finance ' + req.yahoo_symbol : 'unavailable'),\n  currency: useBinance ? 'USDT' : yahoo.currency,\n  daily: useBinance ? indicators(daily, '1d', 365) : indicators(yahoo.candles, '1d', 252),\n  four_hour: useBinance ? indicators(fourHour, '4h', 2190) : null,\n};\n\nconst hl = body('Hyperliquid Perp Context');\nif (Array.isArray(hl) && hl.length === 2 && hl[0] && Array.isArray(hl[0].universe)) {\n  const rows = hl[0].universe.map((u, i) => {\n    const c = hl[1][i] || {};\n    const mark = Number(c.markPx);\n    return {\n      coin: u.name,\n      mark,\n      funding_apr_pct: Number(c.funding) * 24 * 365 * 100,\n      oi_usd: Number(c.openInterest) * mark,\n      change_24h_pct: pct(mark, Number(c.prevDayPx)),\n      volume_24h_usd: Number(c.dayNtlVlm),\n      premium_pct: Number(c.premium) * 100,\n    };\n  }).filter((r) => isFinite(r.mark) && r.mark > 0);\n  const me = rows.find((r) => r.coin.toUpperCase() === req.symbol);\n  if (me) {\n    snapshot.hyperliquid_perp = {\n      mark: round(me.mark, 6),\n      funding_apr_pct: round(me.funding_apr_pct),\n      open_interest_usd: Math.round(me.oi_usd),\n      change_24h_pct: round(me.change_24h_pct),\n      volume_24h_usd: Math.round(me.volume_24h_usd),\n      premium_pct: round(me.premium_pct, 4),\n    };\n  }\n  const liquid = rows.filter((r) => r.oi_usd > 5e6);\n  const byFunding = liquid.slice().sort((a, b) => b.funding_apr_pct - a.funding_apr_pct);\n  const brief = (r) => r.coin + ' ' + round(r.funding_apr_pct, 1) + '% APR';\n  snapshot.perp_market = {\n    most_crowded_longs: byFunding.slice(0, 3).map(brief),\n    most_crowded_shorts: byFunding.slice(-3).reverse().map(brief),\n    median_funding_apr_pct: liquid.length ? round(byFunding[Math.floor(byFunding.length / 2)].funding_apr_pct) : null,\n  };\n}\n\nconst fng = body('Fear & Greed Index');\nif (fng && Array.isArray(fng.data) && fng.data.length) {\n  const vals = fng.data.map((d) => Number(d.value));\n  snapshot.fear_greed = {\n    now: vals[0],\n    label: fng.data[0].value_classification,\n    seven_days_ago: vals[7] !== undefined ? vals[7] : null,\n    avg_30d: round(vals.reduce((s, v) => s + v, 0) / vals.length, 1),\n  };\n}\n\nconst glob = body('Crypto Global Stats');\nif (glob && glob.data && glob.data.total_market_cap) {\n  snapshot.crypto_market = {\n    total_market_cap_usd: Math.round(glob.data.total_market_cap.usd),\n    market_cap_change_24h_pct: round(glob.data.market_cap_change_percentage_24h_usd),\n    btc_dominance_pct: round(glob.data.market_cap_percentage.btc),\n    eth_dominance_pct: round(glob.data.market_cap_percentage.eth),\n  };\n}\n\nconst macroRaw = body('Macro Tickers');\nconst MACRO_NAMES = { '^GSPC': 'S&P 500', '^VIX': 'VIX', 'DX-Y.NYB': 'DXY', '^TNX': 'US 10Y yield', 'GC=F': 'Gold', 'CL=F': 'WTI oil' };\nconst macro = {};\nconst addMacro = (sym, closes) => {\n  const xs = (closes || []).filter((x) => x !== null && x !== undefined);\n  if (xs.length < 2) return;\n  macro[MACRO_NAMES[sym] || sym] = { last: round(xs[xs.length - 1], 3), change_1m_pct: round(pct(xs[xs.length - 1], xs[0])) };\n};\nif (macroRaw && macroRaw.spark && Array.isArray(macroRaw.spark.result)) {\n  for (const r of macroRaw.spark.result) {\n    const resp = r.response && r.response[0];\n    if (resp && resp.indicators) addMacro(r.symbol, resp.indicators.quote[0].close);\n  }\n} else if (macroRaw && typeof macroRaw === 'object') {\n  for (const [sym, v] of Object.entries(macroRaw)) if (v && Array.isArray(v.close)) addMacro(sym, v.close);\n}\nif (Object.keys(macro).length) snapshot.macro = macro;\n\nconst holdings = (ctx.holdings || []).map((h) => h.symbol + ' ' + h.asset_class + ' qty ' + h.quantity + (h.avg_cost != null ? ' @ ' + h.avg_cost : '') + ' [' + h.source + ']');\nconst held = (ctx.holdings || []).filter((h) => String(h.symbol).toUpperCase() === req.symbol);\n\nconst prompt = 'Run the MARKET OVERVIEW for ' + req.symbol + '.\\n'\n  + (snapshot.daily ? '' : 'Note: no price history could be fetched for this symbol; say so and keep the view to what the remaining data supports.\\n')\n  + '\\nMARKET DATA (JSON, indicators already computed):\\n' + JSON.stringify(snapshot, null, 1)\n  + '\\n\\nUSER HOLDINGS:\\n' + (holdings.length ? holdings.join('\\n') : 'none stored')\n  + (held.length ? '\\n\\nThe user currently holds ' + req.symbol + '; address that position explicitly.' : '');\n\nreturn [{ json: { mode: 'market', symbol: req.symbol, request: '/market ' + req.symbol, user_prompt: prompt, snapshot } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "9703283b-e835-4c4a-9b51-b32d4a6f613c",
+      "name": "News Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        640
+      ],
+      "parameters": {
+        "jsCode": "// Build a Google News query from the user's topic, or from their holdings when no topic is given.\nconst ctx = $input.first().json;\nconst ref = ctx.ref;\nconst crypto = new Set(ref.crypto);\n\nlet terms;\nif (ctx.args) {\n  terms = [ctx.args];\n} else {\n  const symbols = [...new Set((ctx.holdings || []).map((h) => String(h.symbol).toUpperCase()))]\n    .filter((s) => s !== 'USDC' && s !== 'USDT')\n    .slice(0, 8);\n  terms = symbols.map((s) => (crypto.has(s) ? (ref.cryptoNames[s] || s) : s.replace(/\\.[A-Z]+$/, '') + ' stock'));\n  if (!terms.length) terms = ['stock market', 'Bitcoin', 'Federal Reserve'];\n}\n\nconst query = terms.map((t) => (/\\s/.test(t) ? '\"' + t + '\"' : t)).join(' OR ') + ' when:2d';\nconst keywords = terms.flatMap((t) => t.toLowerCase().replace(/\"/g, '').split(/\\s+/)).filter((w) => w.length > 2 && w !== 'stock');\n\nreturn [{\n  json: {\n    query,\n    keywords,\n    google_news_url: 'https://news.google.com/rss/search?q=' + encodeURIComponent(query) + '&hl=en-US&gl=US&ceid=US:en',\n  },\n}];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "2f997af3-bbf3-4213-9893-d70edd535a82",
+      "name": "Rank Headlines",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        640
+      ],
+      "parameters": {
+        "jsCode": "// Merge the feeds, drop duplicates and stale items, rank by relevance to the holdings, build the prompt.\nconst ctx = $('Build Context').first().json;\nconst q = $('News Query').first().json;\n\nconst read = (name, fallbackSource) => {\n  try {\n    return $(name).all().map((i) => i.json).filter((j) => j && j.title).map((j) => ({ ...j, feed: fallbackSource }));\n  } catch (e) {\n    return [];\n  }\n};\nconst items = [\n  ...read('Google News Search', 'Google News'),\n  ...read('CoinDesk Headlines', 'CoinDesk'),\n  ...read('CNBC Markets Headlines', 'CNBC'),\n];\n\nconst now = Date.now();\nconst seen = new Set();\nconst ranked = [];\nfor (const it of items) {\n  let title = String(it.title).trim();\n  let source = it.feed;\n  // Google News titles end with \" - Publisher\".\n  const dash = title.lastIndexOf(' - ');\n  if (it.feed === 'Google News' && dash > 20) {\n    source = title.slice(dash + 3);\n    title = title.slice(0, dash);\n  }\n  const key = title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 80);\n  if (seen.has(key)) continue;\n  seen.add(key);\n  const ts = Date.parse(it.isoDate || it.pubDate || '');\n  const ageH = isNaN(ts) ? 48 : (now - ts) / 36e5;\n  if (ageH > 72) continue;\n  const text = (title + ' ' + (it.contentSnippet || '')).toLowerCase();\n  const hits = q.keywords.filter((k) => text.includes(k)).length;\n  const score = hits * 3 + (it.feed === 'Google News' ? 2 : 0) - ageH / 12;\n  ranked.push({\n    source,\n    title,\n    published_utc: isNaN(ts) ? 'unknown' : new Date(ts).toISOString().slice(0, 16).replace('T', ' '),\n    snippet: String(it.contentSnippet || '').replace(/\\s+/g, ' ').slice(0, 220),\n    score,\n  });\n}\nranked.sort((a, b) => b.score - a.score);\nconst top = ranked.slice(0, 15);\n\nconst holdings = (ctx.holdings || []).map((h) => h.symbol + ' (' + h.asset_class + ', ' + h.source + ')');\nconst list = top.map((n, i) => (i + 1) + '. [' + n.source + '] ' + n.title + ' (' + n.published_utc + ' UTC)' + (n.snippet ? '\\n   ' + n.snippet : '')).join('\\n');\n\nconst prompt = 'Run the NEWS SCAN.\\nSearch: ' + q.query + '\\n\\nHEADLINES (most relevant first, last 72h):\\n'\n  + (list || 'No headlines could be fetched; say so and give no news-based call.')\n  + '\\n\\nUSER HOLDINGS:\\n' + (holdings.length ? holdings.join('\\n') : 'none stored');\n\nreturn [{ json: { mode: 'news', symbol: null, request: '/news ' + (ctx.args || '(holdings)'), user_prompt: prompt, headline_count: top.length } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "01e7607a-98bc-4590-b6cf-e4a490ad0152",
+      "name": "Plan Price Requests",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        900
+      ],
+      "parameters": {
+        "jsCode": "// One price-history request per holding (Binance for crypto, Yahoo Finance for everything else),\n// plus SPY as the benchmark and FX pairs for non-USD holdings.\nconst ctx = $input.first().json;\nconst ref = ctx.ref;\nconst crypto = new Set(ref.crypto);\n\nconst yahooUrl = (s) => 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(s) + '?range=6mo&interval=1d';\nconst binanceUrl = (s) => 'https://data-api.binance.vision/api/v3/klines?symbol=' + s + 'USDT&interval=1d&limit=180';\n\nconst toYahoo = (h) => {\n  const s = String(h.symbol).toUpperCase();\n  if (ref.commodities[s]) return ref.commodities[s];\n  if (/[.=^]/.test(s)) return s;\n  const ex = h.exchange ? ref.exchanges[String(h.exchange).toUpperCase()] : null;\n  return ex ? s + ex[0] : s;\n};\n\nconst requests = [];\nconst seen = new Set();\nconst add = (key, provider, url, extra) => {\n  if (seen.has(key)) return;\n  seen.add(key);\n  requests.push({ json: { key, provider, url, ...extra } });\n};\n\nadd('BENCH:SPY', 'yahoo', yahooUrl('SPY'), { symbol: 'SPY', role: 'benchmark' });\nconst currencies = new Set();\nfor (const h of ctx.holdings || []) {\n  const sym = String(h.symbol).toUpperCase();\n  if (h.asset_class === 'cash') continue;\n  if (h.asset_class === 'crypto' || h.asset_class === 'crypto_perp' || crypto.has(sym)) {\n    add('CRYPTO:' + sym, 'binance', binanceUrl(sym), { symbol: sym, role: 'asset' });\n  } else {\n    const ys = toYahoo(h);\n    add('YAHOO:' + ys, 'yahoo', yahooUrl(ys), { symbol: sym, yahoo_symbol: ys, role: 'asset' });\n    const suffix = (ys.match(/\\.[A-Z]+$/) || [''])[0];\n    if (h.currency && h.currency !== 'USD') currencies.add(h.currency);\n    if (ref.suffixCurrency[suffix]) currencies.add(ref.suffixCurrency[suffix]);\n  }\n}\nfor (const c of currencies) add('FX:' + c, 'yahoo', yahooUrl(c + 'USD=X'), { currency: c, role: 'fx' });\n\nreturn requests;\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "70844aa5-52b9-4039-b39c-182943035ea7",
+      "name": "Compute Portfolio Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        900
+      ],
+      "parameters": {
+        "jsCode": "// Value every holding in USD, then compute exposure, concentration, historical-simulation VaR,\n// beta, risk contribution, correlations, perp leverage/liquidation distance and trade statistics.\nconst ctx = $('Build Context').first().json;\nconst plan = $('Plan Price Requests').all().map((i) => i.json);\nconst responses = $('Fetch Price History').all().map((i) => i.json);\n\nconst parse = (v) => {\n  if (v === null || v === undefined) return null;\n  if (typeof v !== 'string') return v;\n  try { return JSON.parse(v); } catch (e) { return null; }\n};\nconst round = (v, dp) => (v === null || v === undefined || !isFinite(v) ? null : Number(Number(v).toFixed(dp === undefined ? 2 : dp)));\nconst mean = (xs) => (xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : 0);\nconst sd = (xs) => {\n  if (xs.length < 2) return 0;\n  const m = mean(xs);\n  return Math.sqrt(xs.reduce((s, x) => s + (x - m) * (x - m), 0) / (xs.length - 1));\n};\nconst cov = (a, b) => {\n  const n = Math.min(a.length, b.length);\n  if (n < 2) return 0;\n  const ma = mean(a.slice(0, n));\n  const mb = mean(b.slice(0, n));\n  let s = 0;\n  for (let i = 0; i < n; i++) s += (a[i] - ma) * (b[i] - mb);\n  return s / (n - 1);\n};\nconst corr = (a, b) => {\n  const d = sd(a) * sd(b);\n  return d ? cov(a, b) / d : 0;\n};\nconst quantile = (xs, q) => {\n  if (!xs.length) return null;\n  const s = xs.slice().sort((a, b) => a - b);\n  const pos = (s.length - 1) * q;\n  const lo = Math.floor(pos);\n  const hi = Math.ceil(pos);\n  return s[lo] + (s[hi] - s[lo]) * (pos - lo);\n};\nconst day = (ms) => new Date(ms).toISOString().slice(0, 10);\n\n// --- Parse price histories into { date -> close } in local units -----------------------------\nconst MINOR = { ZAC: ['ZAR', 100], GBP_P: ['GBP', 100], GBX: ['GBP', 100], ILA: ['ILS', 100] };\nconst series = {};\nplan.forEach((p, i) => {\n  const raw = parse(responses[i] ? (responses[i].data !== undefined ? responses[i].data : responses[i]) : null);\n  const closes = {};\n  let currency = 'USD';\n  let factor = 1;\n  if (p.provider === 'binance' && Array.isArray(raw)) {\n    for (const k of raw) closes[day(Number(k[0]))] = Number(k[4]);\n  } else if (p.provider === 'yahoo' && raw && raw.chart && raw.chart.result && raw.chart.result[0]) {\n    const r = raw.chart.result[0];\n    const q = r.indicators.quote[0];\n    (r.timestamp || []).forEach((t, j) => {\n      if (q.close[j] !== null && q.close[j] !== undefined) closes[day(t * 1000)] = q.close[j];\n    });\n    let cur = String((r.meta && r.meta.currency) || 'USD');\n    if (cur === 'GBp') cur = 'GBP_P';\n    cur = cur.toUpperCase();\n    if (MINOR[cur]) {\n      factor = 1 / MINOR[cur][1];\n      currency = MINOR[cur][0];\n    } else {\n      currency = cur;\n    }\n  }\n  const dates = Object.keys(closes).sort();\n  series[p.key] = { ...p, closes, dates, currency, factor, ok: dates.length > 0, last: dates.length ? closes[dates[dates.length - 1]] * factor : null };\n});\n\nconst fxRate = (ccy) => {\n  if (!ccy || ccy === 'USD' || ccy === 'USDT' || ccy === 'USDC') return 1;\n  const s = series['FX:' + ccy];\n  return s && s.ok ? s.last : null;\n};\n\n// --- Hyperliquid marks and funding ---------------------------------------------------------\nconst hlRaw = parse(($('Fetch Hyperliquid Marks').first().json || {}).data);\nconst hl = {};\nif (Array.isArray(hlRaw) && hlRaw.length === 2 && hlRaw[0] && Array.isArray(hlRaw[0].universe)) {\n  hlRaw[0].universe.forEach((u, i) => {\n    const c = hlRaw[1][i] || {};\n    hl[String(u.name).toUpperCase()] = { mark: Number(c.markPx), funding: Number(c.funding), prevDay: Number(c.prevDayPx) };\n  });\n}\n\n// --- Value positions ------------------------------------------------------------------------\nconst crypto = new Set(ctx.ref.crypto);\nconst positions = [];\nlet cash = 0;\nconst missing = [];\nfor (const h of ctx.holdings || []) {\n  const sym = String(h.symbol).toUpperCase();\n  const qty = Number(h.quantity);\n  if (h.asset_class === 'cash') {\n    cash += qty;\n    continue;\n  }\n  const isCrypto = h.asset_class === 'crypto' || h.asset_class === 'crypto_perp' || crypto.has(sym);\n  let key = null;\n  let priceUsd = null;\n  let priceSource = null;\n  if (isCrypto) {\n    key = 'CRYPTO:' + sym;\n    const s = series[key];\n    if (h.asset_class === 'crypto_perp' && hl[sym] && hl[sym].mark > 0) {\n      priceUsd = hl[sym].mark;\n      priceSource = 'Hyperliquid mark';\n    } else if (s && s.ok) {\n      priceUsd = s.last;\n      priceSource = 'Binance';\n    } else if (hl[sym] && hl[sym].mark > 0) {\n      priceUsd = hl[sym].mark;\n      priceSource = 'Hyperliquid mark';\n    }\n  } else {\n    const p = plan.find((x) => x.role === 'asset' && x.symbol === sym && x.provider === 'yahoo');\n    key = p ? p.key : null;\n    const s = key ? series[key] : null;\n    if (s && s.ok) {\n      const fx = fxRate(s.currency);\n      if (fx) {\n        priceUsd = s.last * fx;\n        priceSource = 'Yahoo Finance (' + s.currency + ')';\n      }\n    }\n  }\n  if (priceUsd === null) {\n    missing.push(sym);\n    continue;\n  }\n  const exposure = qty * priceUsd;\n  const pos = {\n    symbol: sym,\n    source: h.source,\n    asset_class: h.asset_class,\n    quantity: qty,\n    price_usd: round(priceUsd, 6),\n    price_source: priceSource,\n    exposure_usd: round(exposure),\n    series_key: key,\n  };\n  if (h.avg_cost != null) {\n    const fxCost = isCrypto ? 1 : (fxRate(h.currency) || 1);\n    pos.unrealized_pnl_pct = round(((priceUsd / (Number(h.avg_cost) * fxCost)) - 1) * 100 * Math.sign(qty));\n  }\n  if (h.asset_class === 'crypto_perp') {\n    pos.side = qty < 0 ? 'short' : 'long';\n    pos.entry = Number(h.avg_cost);\n    pos.leverage = h.leverage;\n    pos.unrealized_pnl_usd = round((priceUsd - Number(h.avg_cost)) * qty);\n    if (h.liquidation_price) pos.liquidation_distance_pct = round((Math.abs(priceUsd - Number(h.liquidation_price)) / priceUsd) * 100);\n    if (hl[sym] && isFinite(hl[sym].funding)) {\n      pos.funding_apr_pct = round(hl[sym].funding * 24 * 365 * 100);\n      pos.funding_paid_per_day_usd = round(exposure * hl[sym].funding * 24);\n    }\n  }\n  positions.push(pos);\n}\n\nconst spotValue = positions.filter((p) => p.asset_class !== 'crypto_perp').reduce((s, p) => s + p.exposure_usd, 0);\nconst equity = spotValue + cash;\nconst gross = positions.reduce((s, p) => s + Math.abs(p.exposure_usd), 0);\nconst net = positions.reduce((s, p) => s + p.exposure_usd, 0);\nfor (const p of positions) p.weight_pct = round(gross ? (Math.abs(p.exposure_usd) / gross) * 100 : 0, 1);\npositions.sort((a, b) => b.weight_pct - a.weight_pct);\n\nconst classWeights = {};\nfor (const p of positions) classWeights[p.asset_class] = round((classWeights[p.asset_class] || 0) + p.weight_pct, 1);\nconst hhi = positions.reduce((s, p) => s + Math.pow(p.weight_pct / 100, 2), 0);\n\n// --- Historical simulation on SPY trading days ----------------------------------------------\nconst bench = series['BENCH:SPY'];\nconst dates = bench && bench.ok ? bench.dates.slice(-121) : [];\nconst aligned = (key, toUsd) => {\n  const s = series[key];\n  if (!s || !s.ok) return null;\n  const out = [];\n  let last = null;\n  let si = 0;\n  for (const d of dates) {\n    while (si < s.dates.length && s.dates[si] <= d) {\n      last = s.closes[s.dates[si]] * s.factor;\n      si++;\n    }\n    out.push(last === null ? null : last * (toUsd ? (fxRate(s.currency) || 1) : 1));\n  }\n  return out;\n};\nconst returnsOf = (closes) => {\n  const r = [];\n  for (let i = 1; i < closes.length; i++) {\n    r.push(closes[i] !== null && closes[i - 1] ? closes[i] / closes[i - 1] - 1 : 0);\n  }\n  return r;\n};\nconst spyR = dates.length > 20 ? returnsOf(aligned('BENCH:SPY', false)) : [];\nconst assetR = {};\nfor (const p of positions) {\n  if (!p.series_key || assetR[p.symbol]) continue;\n  const closes = aligned(p.series_key, true);\n  if (closes && closes.filter((x) => x !== null).length > 20) assetR[p.symbol] = returnsOf(closes);\n}\n\nlet risk = null;\nif (spyR.length > 20 && equity > 0) {\n  const pnl = spyR.map((_, t) => positions.reduce((s, p) => s + (assetR[p.symbol] ? p.exposure_usd * assetR[p.symbol][t] : 0), 0));\n  const pnlPct = pnl.map((x) => x / equity);\n  const varPnl = sd(pnl) ** 2;\n  let cum = 0;\n  let peak = 0;\n  let maxDd = 0;\n  for (const x of pnl) {\n    cum += x;\n    peak = Math.max(peak, cum);\n    maxDd = Math.max(maxDd, peak - cum);\n  }\n  const tail = pnl.filter((x) => x <= quantile(pnl, 0.05));\n  risk = {\n    window_days: pnl.length,\n    method: 'historical simulation of current positions on the last ~6 months of daily returns (assets without history excluded)',\n    var95_1d_usd: round(-quantile(pnl, 0.05)),\n    var95_1d_pct_equity: round(-quantile(pnlPct, 0.05) * 100),\n    cvar95_1d_usd: round(-mean(tail)),\n    annualized_vol_pct_equity: round(sd(pnlPct) * Math.sqrt(252) * 100),\n    beta_to_spy: round(cov(pnlPct, spyR) / (sd(spyR) ** 2 || 1)),\n    hypothetical_sharpe: round(sd(pnlPct) ? (mean(pnlPct) / sd(pnlPct)) * Math.sqrt(252) : null),\n    max_drawdown_pct_equity: round((maxDd / equity) * 100),\n  };\n  for (const p of positions) {\n    const r = assetR[p.symbol];\n    if (!r) continue;\n    p.vol_annual_pct = round(sd(r) * Math.sqrt(252) * 100, 1);\n    p.beta_to_spy = round(cov(r, spyR) / (sd(spyR) ** 2 || 1));\n    p.risk_contribution_pct = round(varPnl ? ((p.exposure_usd * cov(r, pnl)) / varPnl) * 100 : null, 1);\n  }\n  const syms = Object.keys(assetR);\n  const pairs = [];\n  for (let i = 0; i < syms.length; i++) {\n    for (let j = i + 1; j < syms.length; j++) {\n      const c = corr(assetR[syms[i]], assetR[syms[j]]);\n      if (Math.abs(c) >= 0.6) pairs.push(syms[i] + '/' + syms[j] + ' ' + round(c));\n    }\n  }\n  risk.highly_correlated_pairs = pairs.slice(0, 8);\n}\n\n// --- Trade statistics (Invo/Hyperliquid fills and imported trades) -------------------------\nconst trades = $('Load Recent Trades').all().map((i) => i.json).filter((t) => t && t.symbol);\nlet tradeStats = null;\nif (trades.length) {\n  const closes = trades.filter((t) => t.realized_pnl !== null && Number(t.realized_pnl) !== 0);\n  const wins = closes.filter((t) => Number(t.realized_pnl) > 0).map((t) => Number(t.realized_pnl));\n  const losses = closes.filter((t) => Number(t.realized_pnl) < 0).map((t) => Number(t.realized_pnl));\n  const sum = (xs) => xs.reduce((s, x) => s + x, 0);\n  let streak = 0;\n  for (const t of closes) {\n    if (Number(t.realized_pnl) < 0) streak++;\n    else break;\n  }\n  const counts = {};\n  for (const t of trades) counts[t.symbol] = (counts[t.symbol] || 0) + 1;\n  const since30 = Date.now() - 30 * 864e5;\n  tradeStats = {\n    fills_loaded: trades.length,\n    first_fill: String(trades[trades.length - 1].executed_at).slice(0, 10),\n    last_fill: String(trades[0].executed_at).slice(0, 10),\n    fills_last_30d: trades.filter((t) => Date.parse(t.executed_at) >= since30).length,\n    closing_fills: closes.length,\n    win_rate_pct: round(closes.length ? (wins.length / closes.length) * 100 : null, 1),\n    avg_win_usd: round(wins.length ? mean(wins) : null),\n    avg_loss_usd: round(losses.length ? mean(losses) : null),\n    payoff_ratio: round(wins.length && losses.length ? mean(wins) / Math.abs(mean(losses)) : null),\n    profit_factor: round(losses.length ? sum(wins) / Math.abs(sum(losses)) : null),\n    realized_pnl_usd: round(sum(closes.map((t) => Number(t.realized_pnl)))),\n    fees_usd: round(sum(trades.map((t) => Number(t.fee || 0)))),\n    largest_win_usd: round(wins.length ? Math.max(...wins) : null),\n    largest_loss_usd: round(losses.length ? Math.min(...losses) : null),\n    current_losing_streak: streak,\n    most_traded: Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5).map((e) => e[0] + ' x' + e[1]),\n  };\n}\n\nconst metrics = {\n  as_of_utc: new Date().toISOString().slice(0, 16).replace('T', ' '),\n  equity_usd: round(equity),\n  cash_usd: round(cash),\n  gross_exposure_usd: round(gross),\n  net_exposure_usd: round(net),\n  gross_leverage_x: round(equity ? gross / equity : null),\n  asset_class_weights_pct: classWeights,\n  largest_position: positions[0] ? positions[0].symbol + ' ' + positions[0].weight_pct + '%' : null,\n  herfindahl_index: round(hhi, 3),\n  effective_number_of_bets: round(hhi ? 1 / hhi : null, 1),\n  risk,\n  unpriced_holdings: missing,\n};\n\n// --- Deterministic text report (/risk) and the prompt for the investor panel (/analyze) ---------\nconst f = (v, suffix) => (v === null || v === undefined ? 'n/a' : Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 }) + (suffix || ''));\nconst lines = [];\nlines.push('📐 RISK REPORT (' + metrics.as_of_utc + ' UTC)');\nlines.push('Equity ' + f(metrics.equity_usd, ' USD') + ' | gross exposure ' + f(metrics.gross_exposure_usd, ' USD') + ' | leverage ' + f(metrics.gross_leverage_x, 'x'));\nlines.push('Net exposure ' + f(metrics.net_exposure_usd, ' USD') + ' | cash/USDC ' + f(metrics.cash_usd, ' USD'));\nlines.push('Concentration: largest ' + (metrics.largest_position || 'n/a') + ', HHI ' + f(metrics.herfindahl_index) + ' (≈' + f(metrics.effective_number_of_bets) + ' independent bets)');\nlines.push('Asset classes: ' + (Object.entries(classWeights).map((e) => e[0] + ' ' + e[1] + '%').join(', ') || 'n/a'));\nif (risk) {\n  lines.push('');\n  lines.push('1-day VaR 95%: ' + f(risk.var95_1d_usd, ' USD') + ' (' + f(risk.var95_1d_pct_equity, '%') + ' of equity), CVaR ' + f(risk.cvar95_1d_usd, ' USD'));\n  lines.push('Volatility ' + f(risk.annualized_vol_pct_equity, '%') + ' p.a. | beta to S&P 500 ' + f(risk.beta_to_spy) + ' | max drawdown (6m sim) ' + f(risk.max_drawdown_pct_equity, '%'));\n  if (risk.highly_correlated_pairs.length) lines.push('Highly correlated: ' + risk.highly_correlated_pairs.join(', '));\n}\nlines.push('');\nlines.push('Positions (weight of gross exposure):');\nfor (const p of positions.slice(0, 15)) {\n  let l = '• ' + p.symbol + (p.side ? ' ' + p.side.toUpperCase() : '') + ' ' + p.weight_pct + '% (' + f(p.exposure_usd, ' USD') + ')';\n  if (p.risk_contribution_pct !== undefined && p.risk_contribution_pct !== null) l += ', risk ' + p.risk_contribution_pct + '%';\n  if (p.vol_annual_pct) l += ', vol ' + p.vol_annual_pct + '%';\n  if (p.liquidation_distance_pct !== undefined) l += ', liq ' + p.liquidation_distance_pct + '% away';\n  if (p.funding_apr_pct !== undefined) l += ', funding ' + p.funding_apr_pct + '% APR';\n  lines.push(l);\n}\nconst warnings = [];\nfor (const p of positions) {\n  if (p.weight_pct > 20) warnings.push(p.symbol + ' is ' + p.weight_pct + '% of exposure (limit 20%)');\n  if (p.liquidation_distance_pct !== undefined && p.liquidation_distance_pct < 15) warnings.push(p.symbol + ' is only ' + p.liquidation_distance_pct + '% from liquidation');\n}\nfor (const [k, v] of Object.entries(classWeights)) if (v > 60) warnings.push(k + ' is ' + v + '% of exposure (limit 60%)');\nif (metrics.gross_leverage_x > 2) warnings.push('gross leverage ' + metrics.gross_leverage_x + 'x');\nif (missing.length) warnings.push('no price for: ' + missing.join(', '));\nif (warnings.length) {\n  lines.push('');\n  lines.push('⚠️ ' + warnings.join('\\n⚠️ '));\n}\nif (tradeStats) {\n  lines.push('');\n  lines.push('Trading record (' + tradeStats.fills_loaded + ' fills, ' + tradeStats.first_fill + ' → ' + tradeStats.last_fill + '):');\n  lines.push('Win rate ' + f(tradeStats.win_rate_pct, '%') + ', payoff ' + f(tradeStats.payoff_ratio) + ', profit factor ' + f(tradeStats.profit_factor)\n    + ', realized ' + f(tradeStats.realized_pnl_usd, ' USD') + ', fees ' + f(tradeStats.fees_usd, ' USD'));\n}\nconst riskText = positions.length || cash\n  ? lines.join('\\n')\n  : '📐 No holdings to measure yet. Add some with /portfolio, a CSV import, or /wallet + /sync.';\n\nconst summary = '📊 Equity ' + f(metrics.equity_usd, ' USD') + ' | leverage ' + f(metrics.gross_leverage_x, 'x')\n  + (risk ? ' | VaR95 ' + f(risk.var95_1d_pct_equity, '%') + ' | vol ' + f(risk.annualized_vol_pct_equity, '%') : '')\n  + '\\nTop: ' + positions.slice(0, 5).map((p) => p.symbol + ' ' + p.weight_pct + '%').join(', ')\n  + (warnings.length ? '\\n⚠️ ' + warnings.slice(0, 3).join('; ') : '');\n\nconst prompt = 'Review this portfolio.\\n\\nPORTFOLIO METRICS (JSON, computed from live prices):\\n' + JSON.stringify(metrics, null, 1)\n  + '\\n\\nPOSITIONS:\\n' + JSON.stringify(positions.map((p) => { const c = { ...p }; delete c.series_key; return c; }), null, 1)\n  + '\\n\\nTRADE HISTORY STATS:\\n' + (tradeStats ? JSON.stringify(tradeStats, null, 1) : 'no trades stored')\n  + '\\n\\nRISK FLAGS:\\n' + (warnings.join('\\n') || 'none');\n\nreturn [{\n  json: {\n    chat_id: ctx.chat_id,\n    route: ctx.route,\n    mode: 'analyze',\n    symbol: null,\n    request: ctx.route === 'risk' ? '/risk' : '/analyze',\n    reply: riskText,\n    summary,\n    user_prompt: prompt,\n    has_holdings: positions.length > 0 || cash > 0,\n  },\n}];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "a93acb27-c4db-46fc-9f32-936867ec07c0",
+      "name": "Prepare Agent Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        900
+      ],
+      "parameters": {
+        "jsCode": "// Build the LangChain server request from the skill framework stored in Supabase (agent_skills).\n// /analyze fans out into one item per investor persona. The shared system prompt and data come\n// first and the persona lens last, so Ollama can reuse the cached prompt prefix across personas.\nconst ctx = $('Build Context').first().json;\nconst input = $input.first();\nconst skills = ctx.skills || {};\nconst mode = ctx.route === 'risk' ? 'analyze' : ctx.route;\n\nconst FALLBACK_CORE = 'You are a careful market analyst. Use only the data provided and never invent prices, levels or news. '\n  + 'Give a bias, the key signals, one action (Buy/Add/Hold/Trim/Sell/Hedge/Wait) with an invalidation level, and the main risks. '\n  + 'Plain text, under 1,200 characters. Not financial advice.';\nconst compose = (parts) => parts.filter(Boolean).join('\\n\\n----\\n\\n')\n  + '\\n\\nCurrent UTC date: ' + new Date().toISOString().slice(0, 10) + '.';\n\nconst holdingsText = (ctx.holdings || []).length\n  ? ctx.holdings.map((h) => h.symbol + ' ' + h.asset_class + ' qty ' + h.quantity + (h.avg_cost != null ? ' @ ' + h.avg_cost + ' ' + h.currency : '') + ' [' + h.source + ']').join('\\n')\n  : 'none stored';\n\nconst base = { chat_id: ctx.chat_id, telegram_id: ctx.telegram_id, mode, persona: null, image_b64: null, image_mime: null };\n\nif (mode === 'analyze') {\n  const PERSONAS = [\n    { slug: 'persona_buffett', name: 'Warren Buffett' },\n    { slug: 'persona_dalio', name: 'Ray Dalio' },\n    { slug: 'persona_wood', name: 'Cathie Wood' },\n    { slug: 'persona_ackman', name: 'Bill Ackman' },\n  ];\n  const available = PERSONAS.filter((p) => skills[p.slug]);\n  const panel = available.length ? available : [{ slug: null, name: 'Analyst' }];\n  const system = compose([skills.core || FALLBACK_CORE, skills.portfolio, skills.house_rules]);\n  return panel.map((p) => ({\n    json: {\n      ...base,\n      persona: p.name,\n      symbol: null,\n      request: '/analyze [' + p.name + ']',\n      system_prompt: system,\n      user_prompt: input.json.user_prompt + (p.slug ? '\\n\\n====\\n\\nYOUR ROLE FOR THIS ANSWER:\\n' + skills[p.slug] : ''),\n    },\n  }));\n}\n\nlet userPrompt;\nlet request;\nlet imageB64 = null;\nlet imageMime = null;\nif (mode === 'chart') {\n  request = ctx.text || '(chart without caption)';\n  userPrompt = 'The user uploaded a chart screenshot.'\n    + (ctx.text ? ' Caption: \"' + ctx.text + '\".' : ' No caption was given.')\n    + ' Run the CHART SNAPSHOT checklist on the attached image.\\n\\nUSER HOLDINGS:\\n' + holdingsText;\n  const bin = input.binary && input.binary.data;\n  if (bin) {\n    const buffer = await this.helpers.getBinaryDataBuffer(0, 'data');\n    imageB64 = buffer.toString('base64');\n    imageMime = bin.mimeType && bin.mimeType.startsWith('image/') ? bin.mimeType : 'image/jpeg';\n  }\n} else if (mode === 'ask') {\n  request = ctx.text;\n  userPrompt = 'User message: ' + ctx.text + '\\n\\nUSER HOLDINGS:\\n' + holdingsText\n    + '\\n\\nNo live market data was fetched for this message. For general or educational questions answer directly in under 1,000 characters and skip the BIAS/ACTION template. '\n    + 'If the question needs live prices or news, answer conceptually and suggest /market SYMBOL, /news or sending a chart screenshot.';\n} else {\n  request = input.json.request;\n  userPrompt = input.json.user_prompt;\n}\n\nconst SKILL_FOR_MODE = { chart: 'chart', market: 'market', news: 'news', ask: null };\nreturn [{\n  json: {\n    ...base,\n    symbol: input.json.symbol || null,\n    request,\n    system_prompt: compose([skills.core || FALLBACK_CORE, SKILL_FOR_MODE[mode] ? skills[SKILL_FOR_MODE[mode]] : '', skills.house_rules]),\n    user_prompt: userPrompt,\n    image_b64: imageB64,\n    image_mime: imageMime,\n  },\n}];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "e0ecb810-7c0d-4109-8e13-adf8fc95a4fc",
+      "name": "Format Agent Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3392,
+        900
+      ],
+      "parameters": {
+        "jsCode": "// Collect the LangChain server answer(s) into one Telegram reply. For /analyze this is the investor panel.\nconst prepared = $('Prepare Agent Input').all().map((i) => i.json);\nconst outputs = $input.all().map((i) => i.json);\nconst first = prepared[0] || {};\n\nconst textOf = (o) => {\n  if (o && typeof o.output === 'string' && o.output.trim()) return o.output.trim();\n  let err = 'no response';\n  if (o && o.error) err = o.error.message || JSON.stringify(o.error);\n  else if (o && o.detail) err = typeof o.detail === 'string' ? o.detail : JSON.stringify(o.detail);\n  return '⚠️ The LangChain server did not answer (' + String(err).slice(0, 200) + '). '\n    + 'Check that the Oracle VM is up (http://<vm-ip>:8000/health), the URL on the \"Ask LangChain Analyst\" node, and the API key credential.';\n};\n\nlet reply;\nif (first.mode === 'analyze') {\n  const ICONS = { 'Warren Buffett': '👔', 'Ray Dalio': '🌊', 'Cathie Wood': '🚀', 'Bill Ackman': '🎯' };\n  const verdicts = [];\n  const sections = prepared.map((p, i) => {\n    const text = textOf(outputs[i]);\n    const v = text.match(/VERDICT:\\s*([A-Za-z ]{3,20})/i);\n    if (v) verdicts.push(p.persona.split(' ').pop() + ': ' + v[1].trim());\n    return '━━━━━━━━━━━━━━\\n' + (ICONS[p.persona] || '•') + ' ' + p.persona.toUpperCase() + '\\n\\n' + text;\n  });\n  let header = '🏛️ INVESTOR PANEL\\n';\n  try {\n    header += $('Compute Portfolio Metrics').first().json.summary + '\\n';\n  } catch (e) {\n    // metrics unavailable; panel still useful\n  }\n  reply = header + '\\n' + sections.join('\\n\\n')\n    + (verdicts.length ? '\\n\\n━━━━━━━━━━━━━━\\n🧮 Panel verdicts: ' + verdicts.join(' · ') : '')\n    + '\\n\\n/risk for the full risk report. Not financial advice.';\n} else {\n  const TITLES = { chart: '📈 CHART READ', market: '🌍 MARKET OVERVIEW', news: '📰 NEWS SCAN', ask: '💬 ANALYST' };\n  reply = (TITLES[first.mode] || '') + (first.symbol ? ' ' + first.symbol : '') + '\\n\\n' + textOf(outputs[0]);\n}\n\nreturn [{ json: { chat_id: first.chat_id, reply } }];\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    },
+    {
+      "id": "101f5799-471f-4e05-b75e-7ae9a5dad3fc",
+      "name": "Split For Telegram",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3872,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Telegram caps messages at 4096 characters and the send node parses HTML, so split on line breaks\n// and escape &, < and >.\nconst LIMIT = 3600;\nconst escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst out = [];\nfor (const item of $input.all()) {\n  const chatId = item.json.chat_id;\n  let text = String(item.json.reply === undefined || item.json.reply === null ? '' : item.json.reply).trim() || '(empty response)';\n  text = text.replace(/\\*\\*(.+?)\\*\\*/g, '$1').replace(/^#{1,6}\\s*/gm, '');\n  const chunks = [];\n  while (text.length > LIMIT) {\n    let cut = text.lastIndexOf('\\n', LIMIT);\n    if (cut < LIMIT / 2) cut = LIMIT;\n    chunks.push(text.slice(0, cut));\n    text = text.slice(cut).replace(/^\\s+/, '');\n  }\n  chunks.push(text);\n  chunks.forEach((c, i) => {\n    out.push({ json: { chat_id: chatId, text: escape(c) + (chunks.length > 1 ? '\\n(' + (i + 1) + '/' + chunks.length + ')' : '') } });\n  });\n}\nreturn out;\n",
+        "language": "javaScript",
+        "mode": "runOnceForAllItems"
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Message": {
+      "main": [
+        [
+          {
+            "node": "Load Skills",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Skills": {
+      "main": [
+        [
+          {
+            "node": "Load Holdings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Holdings": {
+      "main": [
+        [
+          {
+            "node": "Build Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Context": {
+      "main": [
+        [
+          {
+            "node": "Route Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Message": {
+      "main": [
+        [
+          {
+            "node": "Help Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Holdings Command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Portfolio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download CSV File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Wallet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load Sync State",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Market Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "News Query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Plan Price Requests",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download Chart Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Agent Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Help Reply": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Holdings Command": {
+      "main": [
+        [
+          {
+            "node": "Save Holdings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Holdings": {
+      "main": [
+        [
+          {
+            "node": "Holdings Saved Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Holdings Saved Reply": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Portfolio": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download CSV File": {
+      "main": [
+        [
+          {
+            "node": "Read CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read CSV": {
+      "main": [
+        [
+          {
+            "node": "Map Import Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Import Rows": {
+      "main": [
+        [
+          {
+            "node": "Save Import",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Import": {
+      "main": [
+        [
+          {
+            "node": "Import Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Import Reply": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Wallet": {
+      "main": [
+        [
+          {
+            "node": "Wallet Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wallet Reply": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Sync State": {
+      "main": [
+        [
+          {
+            "node": "Wallet Linked?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wallet Linked?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Hyperliquid Fills",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Wallet Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Hyperliquid Fills": {
+      "main": [
+        [
+          {
+            "node": "Fetch Hyperliquid Positions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Hyperliquid Positions": {
+      "main": [
+        [
+          {
+            "node": "Map Hyperliquid Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Hyperliquid Data": {
+      "main": [
+        [
+          {
+            "node": "Save Hyperliquid Fills",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Hyperliquid Fills": {
+      "main": [
+        [
+          {
+            "node": "Save Hyperliquid Positions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Hyperliquid Positions": {
+      "main": [
+        [
+          {
+            "node": "Sync Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Reply": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Wallet Reply": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Market Request": {
+      "main": [
+        [
+          {
+            "node": "Binance Daily Candles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Binance Daily Candles": {
+      "main": [
+        [
+          {
+            "node": "Binance 4h Candles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Binance 4h Candles": {
+      "main": [
+        [
+          {
+            "node": "Yahoo Daily Candles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Yahoo Daily Candles": {
+      "main": [
+        [
+          {
+            "node": "Hyperliquid Perp Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hyperliquid Perp Context": {
+      "main": [
+        [
+          {
+            "node": "Fear & Greed Index",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fear & Greed Index": {
+      "main": [
+        [
+          {
+            "node": "Crypto Global Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto Global Stats": {
+      "main": [
+        [
+          {
+            "node": "Macro Tickers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Macro Tickers": {
+      "main": [
+        [
+          {
+            "node": "Compute Market Snapshot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "News Query": {
+      "main": [
+        [
+          {
+            "node": "Google News Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google News Search": {
+      "main": [
+        [
+          {
+            "node": "CoinDesk Headlines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CoinDesk Headlines": {
+      "main": [
+        [
+          {
+            "node": "CNBC Markets Headlines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CNBC Markets Headlines": {
+      "main": [
+        [
+          {
+            "node": "Rank Headlines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan Price Requests": {
+      "main": [
+        [
+          {
+            "node": "Fetch Price History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Price History": {
+      "main": [
+        [
+          {
+            "node": "Fetch Hyperliquid Marks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Hyperliquid Marks": {
+      "main": [
+        [
+          {
+            "node": "Load Recent Trades",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Recent Trades": {
+      "main": [
+        [
+          {
+            "node": "Compute Portfolio Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Portfolio Metrics": {
+      "main": [
+        [
+          {
+            "node": "Report Only?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Only?": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Agent Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Market Snapshot": {
+      "main": [
+        [
+          {
+            "node": "Prepare Agent Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rank Headlines": {
+      "main": [
+        [
+          {
+            "node": "Prepare Agent Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Chart Image": {
+      "main": [
+        [
+          {
+            "node": "Prepare Agent Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Agent Input": {
+      "main": [
+        [
+          {
+            "node": "Send Working Notice",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ask LangChain Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask LangChain Analyst": {
+      "main": [
+        [
+          {
+            "node": "Format Agent Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Agent Reply": {
+      "main": [
+        [
+          {
+            "node": "Split For Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split For Telegram": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "pinData": {}
+}

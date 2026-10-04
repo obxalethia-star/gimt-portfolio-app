@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# example env file for the LangChain server (no secrets)
+!langchain-server/.env.example

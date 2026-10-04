@@ -1,18 +1,18 @@
 # Quant Hedgefund bot: setup
 
-A Telegram bot, run by the n8n workflow **Quant Hedgefund**. It stores your portfolio in Supabase, pulls free market data, and asks a self-hosted LangChain server (Ollama on your Oracle VM) for a market read and a recommendation.
+A Telegram bot, run by the n8n workflow **Quant Hedgefund**. It stores your portfolio in Supabase, pulls free market data, and asks a local LangChain server (Ollama on your own server, no per-use AI costs) for a market read and a recommendation.
 
 ```
 Telegram ─▶ n8n "Quant Hedgefund" ─┬─▶ Supabase (holdings, trades, skills, analysis log)
                                    ├─▶ free market data (Binance, Hyperliquid, Yahoo, Fear & Greed, CoinGecko, RSS)
-                                   └─▶ LangChain server on the Oracle VM ─▶ Ollama (llama3.1:8b text, gemma3:4b vision)
+                                   └─▶ local LangChain server ─▶ Ollama (qhf-text and qhf-vision models)
 ```
 
 | Path | What it is |
 |---|---|
 | `n8n/quant-hedgefund.workflow.json` | Export of the live workflow (57 nodes). Import it with *Workflows → Import from file*. |
 | `supabase/migrations/` | Database schema, RPC functions and the agent skills |
-| `langchain-server/` | LangServe app plus a one-shot Oracle VM installer |
+| `langchain-server/` | LangServe app, plus `install_local_ai.sh` / `uninstall_local_ai.sh` for the local AI stack |
 | `docs/skill-framework-sources.md` | Every rule in the agent skills, mapped to a book and page |
 
 ## Bot commands
@@ -45,15 +45,23 @@ Telegram ─▶ n8n "Quant Hedgefund" ─┬─▶ Supabase (holdings, trades, s
    - Service Role Secret: the project's secret key (*Project Settings → API Keys*)
 
    Select it on the Supabase nodes (*Load Skills*, *Load Holdings*, *Load Sync State*, *Load Recent Trades*, *Log Analysis*) and on the *Save…* HTTP Request nodes.
-2. **LangChain server.** On the Oracle VM:
+2. **Local AI (Ollama + LangChain).** On the server that runs n8n:
    ```bash
-   git clone <this repo> && cd gimt-portfolio-app/langchain-server
-   bash setup_oracle_vm.sh   # uses sudo where needed
+   git clone -b claude/charming-gauss-w6usma https://github.com/obxalethia-star/gimt-portfolio-app.git
+   cd gimt-portfolio-app/langchain-server
+   bash install_local_ai.sh   # uses sudo where needed
    ```
-   The script installs Ollama, pulls the models, and starts the `qhf-langchain` systemd service on port 8000. It also prints an API key. Next, in OCI, add an ingress rule for TCP 8000 to the VM's subnet Security List (ideally only from your n8n server's IP).
-3. **Point n8n at the server.**
-   - On *Ask LangChain Analyst*, set the URL to `http://<VM public IP>:8000/analyst/invoke`.
-   - Create a *Header Auth* credential named **QHF LangChain API key**, with Name `X-API-Key` and Value set to the key the script printed.
+   The installer leaves n8n alone: no restart, no change to its containers, config or firewall. It:
+   - runs Ollama and the LangServe API in their own Docker containers (or, without Docker, as systemd services);
+   - caps them at all but one CPU core and about 70% of RAM, at lower priority than n8n, so the kernel stops them first if memory runs out;
+   - listens only on the server itself (and, if n8n runs in Docker, on n8n's Docker network), so nothing is exposed to the internet;
+   - picks models that fit your RAM, downloads them, and checks that n8n can reach them.
+
+   At the end it prints the exact URLs and the API key for the next step. To remove it: `bash uninstall_local_ai.sh` (`--purge` also deletes the models).
+3. **Point n8n at the AI.** Use the values the installer prints:
+   - On *Ask LangChain Analyst*, set the URL (usually `http://qhf-langchain:8000/analyst/invoke`).
+   - Create a *Header Auth* credential named **QHF LangChain API key**, with Name `X-API-Key` and the printed key as Value.
+   - Optional, for any other workflow: create an *Ollama* credential with the printed Base URL (usually `http://qhf-ollama:11434`), then use the built-in Ollama Chat Model node with model `qhf-text` (or `qhf-vision` for images).
 4. **Lock the bot to yourself.** On *Telegram Trigger*, set *Restrict to Chat IDs* to your chat ID.
 5. **Activate** the workflow.
 
@@ -74,10 +82,19 @@ Every prompt lives in the Supabase table `agent_skills`, so you can edit a promp
 - run `supabase db push` from this repo, or
 - paste the file into the Supabase SQL editor.
 
-## VM sizing
+## Server sizing
 
-The defaults assume the Oracle Always Free Ampere A1 shape (4 OCPU, 24 GB RAM, no GPU). On that shape:
-- An 8B text model answers in roughly 1–3 minutes per persona, so `/analyze` sends a "working on it" message first and allows up to 10 minutes.
-- The four personas share a prompt prefix, so Ollama can reuse the cached prefix between them.
+The installer sizes everything from the server's CPU and RAM. n8n and the OS always keep at least one core and 3 GB or 30% of RAM, whichever is larger.
 
-On a smaller VM, set `TEXT_MODEL` in `/opt/qhf-langchain/.env` to a smaller model (e.g. `llama3.2:3b`) and restart the service.
+| AI share of RAM | Text model | Models loaded at once |
+|---|---|---|
+| 12 GB or more | llama3.1:8b | 2 (text and vision) |
+| 7–12 GB | llama3.1:8b | 1 |
+| 5–7 GB | llama3.2:3b | 1 |
+| under 5 GB | not installed (the server is too small) | – |
+
+Charts always use `gemma3:4b`. The installer stops if Docker's disk has less than about 20 GB free (12 GB without Docker).
+
+On the Oracle Always Free Ampere A1 shape (4 OCPU, 24 GB, no GPU), the AI gets 3 cores and about 17 GB. An 8B model then answers in roughly 1–3 minutes per persona, so `/analyze` sends a "working on it" message first and allows up to 10 minutes.
+
+To choose other models, re-run the installer with overrides, e.g. `TEXT_BASE_MODEL=qwen2.5:7b bash install_local_ai.sh`. It keeps the API key and the models already downloaded.

@@ -1,0 +1,74 @@
+# Local AI stack for n8n: Ollama (models) + the QHF LangServe API.
+# Its own compose project, containers, network and volume: it never touches the n8n containers.
+# install_local_ai.sh writes .env (sizes, models, API key) and docker-compose.override.yml (how n8n reaches it).
+name: qhf-ai
+
+services:
+  qhf-ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}
+    container_name: qhf-ollama
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_KEEP_ALIVE: ${KEEP_ALIVE:-10m}
+      OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
+      OLLAMA_NUM_PARALLEL: "1"
+    volumes:
+      - qhf-ollama-models:/root/.ollama
+      - ./modelfiles:/modelfiles:ro
+    ports:
+      # Loopback only: Ollama has no authentication, so it is never published on a public interface.
+      - "127.0.0.1:${OLLAMA_PORT:-11434}:11434"
+    # Hard caps so model inference can never starve n8n: CPU cores, RAM (no swap), lower CPU priority,
+    # and the kernel kills this container first if the server runs out of memory.
+    cpus: ${OLLAMA_CPUS:-2}
+    mem_limit: ${OLLAMA_MEM_MB:-6000}m
+    memswap_limit: ${OLLAMA_MEM_MB:-6000}m
+    cpu_shares: 512
+    oom_score_adj: 500
+    labels:
+      traefik.enable: "false"
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - qhf-ai
+
+  qhf-langchain:
+    build: ./app
+    image: qhf-langchain:local
+    container_name: qhf-langchain
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      OLLAMA_BASE_URL: http://qhf-ollama:11434
+    depends_on:
+      qhf-ollama:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${LANGCHAIN_PORT:-8000}:8000"
+    cpus: 0.5
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpu_shares: 512
+    oom_score_adj: 500
+    labels:
+      traefik.enable: "false"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8000), 3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - qhf-ai
+
+networks:
+  qhf-ai:
+    name: qhf-ai
+
+volumes:
+  qhf-ollama-models:
+    name: qhf-ollama-models

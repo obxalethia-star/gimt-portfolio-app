@@ -1,7 +1,8 @@
 """LangServe API for the Quant Hedgefund n8n workflow.
 
 n8n builds the prompts (from the Supabase agent_skills table) and calls this server instead of a
-hosted model. Inference runs on Ollama on the same VM, so there are no per-token costs.
+hosted model. Inference runs on Ollama on the same server, so there are no per-token costs.
+install_local_ai.sh runs it next to n8n, reachable only from the server itself and n8n's containers.
 
 POST /analyst/invoke   (header: X-API-Key)
     {"input": {"system": "...", "prompt": "...", "image_b64": null, "image_mime": "image/jpeg"}}
@@ -28,12 +29,15 @@ from pydantic import BaseModel, Field
 load_dotenv()
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-TEXT_MODEL = os.getenv("TEXT_MODEL", "llama3.1:8b")
-VISION_MODEL = os.getenv("VISION_MODEL", "gemma3:4b")
+# qhf-text / qhf-vision are created by install_local_ai.sh from the base models, with thread and context settings.
+TEXT_MODEL = os.getenv("TEXT_MODEL", "qhf-text")
+VISION_MODEL = os.getenv("VISION_MODEL", "qhf-vision")
 # Ollama silently truncates prompts longer than the context window; the portfolio prompts are ~5k tokens.
 NUM_CTX = int(os.getenv("NUM_CTX", "8192"))
 TEMPERATURE = float(os.getenv("TEMPERATURE", "0.3"))
-KEEP_ALIVE = os.getenv("KEEP_ALIVE", "30m")
+KEEP_ALIVE = os.getenv("KEEP_ALIVE", "10m")
+# Match the CPU limit given to Ollama; more threads than cores makes CPU inference much slower.
+NUM_THREAD = int(os.getenv("NUM_THREAD", "0")) or None
 API_KEY = os.getenv("QHF_API_KEY", "")
 
 if len(API_KEY) < 24:
@@ -53,6 +57,7 @@ def _model(name: str) -> ChatOllama:
         model=name,
         temperature=TEMPERATURE,
         num_ctx=NUM_CTX,
+        num_thread=NUM_THREAD,
         keep_alive=KEEP_ALIVE,
     )
 
@@ -91,15 +96,20 @@ async def require_api_key(request: Request, call_next):
     return await call_next(request)
 
 
+def _tagged(name: str) -> str:
+    """Ollama lists untagged models as name:latest."""
+    return name if ":" in name else f"{name}:latest"
+
+
 @app.get("/health")
 async def health():
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             tags = (await client.get(f"{OLLAMA_BASE_URL}/api/tags")).json()
-        pulled = {m["name"] for m in tags.get("models", [])}
+        pulled = {_tagged(m["name"]) for m in tags.get("models", [])}
     except Exception as exc:  # Ollama down or unreachable
         return JSONResponse({"ok": False, "ollama": str(exc)}, status_code=503)
-    models = {name: name in pulled for name in (TEXT_MODEL, VISION_MODEL)}
+    models = {name: _tagged(name) in pulled for name in (TEXT_MODEL, VISION_MODEL)}
     return {"ok": all(models.values()), "models": models}
 
 

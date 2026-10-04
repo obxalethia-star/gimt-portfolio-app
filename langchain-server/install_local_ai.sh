@@ -6,9 +6,13 @@
 #   bash install_local_ai.sh                 # auto: Docker if available, otherwise native systemd services
 #   MODE=native bash install_local_ai.sh     # force native services (no Docker)
 #
+# Dedicated AI server instead (n8n on another VM in the same private network, Docker required):
+#   REMOTE_N8N_IP=10.0.0.223 bash install_local_ai.sh
+# The AI then listens on this server's private IP; allow only the n8n server's IP in the cloud firewall.
+#
 # Safe to re-run: keeps the API key and downloaded models, re-sizes the limits and updates the code.
 # Optional overrides: TEXT_BASE_MODEL, VISION_BASE_MODEL, AI_CPUS, AI_MEM_MB, OLLAMA_PORT, LANGCHAIN_PORT,
-# N8N_NETWORK (Docker network to join), APP_DIR (default /opt/qhf-ai), SKIP_SMOKE_TEST=1.
+# N8N_NETWORK (Docker network to join), PRIVATE_IP (remote mode), APP_DIR (default /opt/qhf-ai), SKIP_SMOKE_TEST=1.
 set -euo pipefail
 
 SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -16,6 +20,7 @@ APP_DIR="${APP_DIR:-/opt/qhf-ai}"
 MODE="${MODE:-auto}"
 NUM_CTX="${NUM_CTX:-8192}"
 KEEP_ALIVE="${KEEP_ALIVE:-10m}"
+REMOTE_N8N_IP="${REMOTE_N8N_IP:-}"
 
 log() { printf '\n==> %s\n' "$*"; }
 warn() { printf 'WARNING: %s\n' "$*" >&2; }
@@ -45,26 +50,35 @@ pick_port() {
 log "Sizing the AI limits for this server"
 CPUS_TOTAL=$(nproc)
 MEM_TOTAL_MB=$(awk '/^MemTotal:/ {print int($2 / 1024)}' /proc/meminfo)
-# n8n and the OS keep at least 3 GB or 30% of RAM (whichever is larger) and at least one CPU core.
-RESERVE_MB=$((MEM_TOTAL_MB * 30 / 100))
-if [ "$RESERVE_MB" -lt 3072 ]; then RESERVE_MB=3072; fi
-AI_MEM_MB="${AI_MEM_MB:-$((MEM_TOTAL_MB - RESERVE_MB))}"
-if [ -z "${AI_CPUS:-}" ]; then
-  if [ "$CPUS_TOTAL" -gt 1 ]; then AI_CPUS=$((CPUS_TOTAL - 1)); else AI_CPUS=1; fi
+if [ -n "$REMOTE_N8N_IP" ]; then
+  # Dedicated AI server: only the OS needs headroom.
+  RESERVE_MB=$((MEM_TOTAL_MB * 10 / 100))
+  if [ "$RESERVE_MB" -lt 1536 ]; then RESERVE_MB=1536; fi
+  AI_CPUS="${AI_CPUS:-$CPUS_TOTAL}"
+else
+  # n8n and the OS keep at least 3 GB or 30% of RAM (whichever is larger) and at least one CPU core.
+  RESERVE_MB=$((MEM_TOTAL_MB * 30 / 100))
+  if [ "$RESERVE_MB" -lt 3072 ]; then RESERVE_MB=3072; fi
+  if [ -z "${AI_CPUS:-}" ]; then
+    if [ "$CPUS_TOTAL" -gt 1 ]; then AI_CPUS=$((CPUS_TOTAL - 1)); else AI_CPUS=1; fi
+  fi
 fi
+AI_MEM_MB="${AI_MEM_MB:-$((MEM_TOTAL_MB - RESERVE_MB))}"
 [[ "$AI_CPUS" =~ ^[1-9][0-9]*$ ]] && [ "$AI_CPUS" -le "$CPUS_TOTAL" ] ||
   die "AI_CPUS must be a whole number between 1 and $CPUS_TOTAL."
 [[ "$AI_MEM_MB" =~ ^[0-9]+$ ]] && [ "$AI_MEM_MB" -ge 5000 ] ||
-  die "Only ${MEM_TOTAL_MB} MB RAM: local models need about 8 GB in total so that n8n keeps 3 GB."
+  die "Only ${MEM_TOTAL_MB} MB RAM: the models need about 5 GB on top of what n8n and the OS keep. Use a bigger server, or a second VM with REMOTE_N8N_IP."
 if [ "$CPUS_TOTAL" -eq 1 ]; then warn "1 CPU core: n8n and the AI will share it (AI has lower priority)."; fi
 
 if [ "$AI_MEM_MB" -ge 12000 ]; then MAX_LOADED=2; else MAX_LOADED=1; fi
-if [ "$AI_MEM_MB" -ge 7000 ]; then DEFAULT_TEXT=llama3.1:8b; else DEFAULT_TEXT=llama3.2:3b; fi
+# An 8B model needs about 7 GB and at least two cores to answer in reasonable time on CPU; otherwise use a 3B model.
+if [ "$AI_MEM_MB" -ge 7000 ] && [ "$AI_CPUS" -ge 2 ]; then DEFAULT_TEXT=llama3.1:8b; else DEFAULT_TEXT=llama3.2:3b; fi
 TEXT_BASE_MODEL="${TEXT_BASE_MODEL:-$DEFAULT_TEXT}"
 VISION_BASE_MODEL="${VISION_BASE_MODEL:-gemma3:4b}"
 NUM_THREAD="$AI_CPUS"
 echo "Server: $CPUS_TOTAL CPU cores, $MEM_TOTAL_MB MB RAM."
-echo "AI limit: $AI_CPUS cores, $AI_MEM_MB MB RAM (n8n and the OS keep the rest)."
+if [ -n "$REMOTE_N8N_IP" ]; then KEEPER="the OS"; else KEEPER="n8n and the OS"; fi
+echo "AI limit: $AI_CPUS cores, $AI_MEM_MB MB RAM (the rest stays free for $KEEPER)."
 echo "Models: $TEXT_BASE_MODEL (text), $VISION_BASE_MODEL (charts); $MAX_LOADED loaded at a time."
 
 # ---------------------------------------------------------------- mode
@@ -80,6 +94,18 @@ case "$MODE" in
   native) ;;
   *) die "MODE must be auto, docker or native." ;;
 esac
+PRIVATE_IP="${PRIVATE_IP:-}"
+if [ -n "$REMOTE_N8N_IP" ]; then
+  [ "$MODE" = docker ] || die "REMOTE_N8N_IP needs Docker on this server (curl -fsSL https://get.docker.com | sudo sh)."
+  if [ -z "$PRIVATE_IP" ]; then
+    PRIVATE_IP="$({ ip -4 route get 1.1.1.1 2>/dev/null || true; } | awk '{for (i = 1; i < NF; i++) if ($i == "src") print $(i + 1)}')"
+    if [ -z "$PRIVATE_IP" ]; then PRIVATE_IP="$({ hostname -I 2>/dev/null || true; } | awk '{print $1}')"; fi
+  fi
+  # Never publish the unauthenticated Ollama API on a public address.
+  [[ "$PRIVATE_IP" =~ ^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.) ]] ||
+    die "Could not find this server's private IP (got '$PRIVATE_IP'). Set PRIVATE_IP=10.x.x.x and re-run."
+  echo "Dedicated AI server: listening on private IP $PRIVATE_IP for n8n at $REMOTE_N8N_IP."
+fi
 echo "Install mode: $MODE"
 
 disk_free_gb() { df -Pk "$1" 2>/dev/null | awk 'NR == 2 {print int($4 / 1048576)}'; }
@@ -154,6 +180,7 @@ EOF
 # ---------------------------------------------------------------- docker mode
 N8N_NETS=()
 N8N_CONTAINERS=()
+N8N_MAIN=""
 N8N_ON_DEFAULT_BRIDGE=0
 N8N_ON_HOST_NET=0
 GATEWAY=""
@@ -163,10 +190,30 @@ install_docker_stack() {
   "${COMPOSE[@]}" version >/dev/null 2>&1 ||
     die "Docker Compose v2 is missing. Install it (Ubuntu: sudo apt-get install -y docker-compose-plugin, or docker-compose-v2) and re-run."
 
+  local c net i svc port inner
+  if [ -n "$REMOTE_N8N_IP" ]; then
+    {
+      echo "# Written by install_local_ai.sh: dedicated AI server, reachable on its private IP only."
+      echo "services:"
+      echo "  qhf-ollama:"
+      echo "    ports:"
+      echo "      - \"$PRIVATE_IP:$OLLAMA_PORT:11434\""
+      echo "  qhf-langchain:"
+      echo "    ports:"
+      echo "      - \"$PRIVATE_IP:$LANGCHAIN_PORT:8000\""
+    } | "${SUDO[@]}" tee "$APP_DIR/docker-compose.override.yml" >/dev/null
+    start_compose
+    return
+  fi
+
   log "Looking for the running n8n containers (read-only)"
-  local c net
+  # Match on the image, not the name: compose names every container in an "n8n" project n8n-*.
   mapfile -t N8N_CONTAINERS < <("${DOCKER[@]}" ps --format '{{.Names}} {{.Image}}' |
-    awk 'tolower($0) ~ /n8n/ && $1 !~ /^qhf-/ {print $1}')
+    awk 'tolower($2) ~ /n8n/ && $1 !~ /^qhf-/ {print $1}')
+  # The main n8n container (runs HTTP Request and AI nodes), preferred for the reachability check.
+  N8N_MAIN="$("${DOCKER[@]}" ps --format '{{.Names}} {{.Image}}' |
+    awk 'tolower($2) ~ /(^|\/)n8n(:|@|$)/ && $1 !~ /^qhf-/ {print $1; exit}')"
+  if [ -z "$N8N_MAIN" ] && [ ${#N8N_CONTAINERS[@]} -gt 0 ]; then N8N_MAIN="${N8N_CONTAINERS[0]}"; fi
   for c in "${N8N_CONTAINERS[@]}"; do
     if [ "$("${DOCKER[@]}" inspect -f '{{.HostConfig.NetworkMode}}' "$c")" = host ]; then
       N8N_ON_HOST_NET=1
@@ -194,7 +241,6 @@ install_docker_stack() {
     GATEWAY="$("${DOCKER[@]}" network inspect bridge -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}' 2>/dev/null || true)"
   fi
 
-  local i svc port inner
   {
     echo "# Written by install_local_ai.sh: how n8n reaches the AI stack. Re-run the installer to regenerate."
     if [ ${#N8N_NETS[@]} -eq 0 ] && [ -z "$GATEWAY" ]; then
@@ -222,7 +268,10 @@ install_docker_stack() {
       fi
     fi
   } | "${SUDO[@]}" tee "$APP_DIR/docker-compose.override.yml" >/dev/null
+  start_compose
+}
 
+start_compose() {
   log "Starting the AI containers (n8n is not touched)"
   COMPOSE+=(--project-directory "$APP_DIR" -f "$APP_DIR/docker-compose.yml" -f "$APP_DIR/docker-compose.override.yml")
   "${COMPOSE[@]}" up -d --build
@@ -353,7 +402,10 @@ if [ "${SKIP_SMOKE_TEST:-0}" != 1 ]; then
 fi
 
 # How n8n reaches the stack.
-if [ "$MODE" = docker ] && [ ${#N8N_NETS[@]} -gt 0 ]; then
+if [ -n "$REMOTE_N8N_IP" ]; then
+  OLLAMA_URL="http://$PRIVATE_IP:$OLLAMA_PORT"
+  LANGCHAIN_URL="http://$PRIVATE_IP:$LANGCHAIN_PORT"
+elif [ "$MODE" = docker ] && [ ${#N8N_NETS[@]} -gt 0 ]; then
   OLLAMA_URL="http://qhf-ollama:11434"
   LANGCHAIN_URL="http://qhf-langchain:8000"
 elif [ "$MODE" = docker ] && [ "$N8N_ON_DEFAULT_BRIDGE" = 1 ] && [ -n "$GATEWAY" ]; then
@@ -364,9 +416,9 @@ else
   LANGCHAIN_URL="http://127.0.0.1:$LANGCHAIN_PORT"
 fi
 
-if [ "$MODE" = docker ] && [ ${#N8N_CONTAINERS[@]} -gt 0 ] && [ "$N8N_ON_HOST_NET" = 0 ]; then
-  log "Checking that n8n can reach the AI (read-only request from ${N8N_CONTAINERS[0]})"
-  if "${DOCKER[@]}" exec "${N8N_CONTAINERS[0]}" node -e \
+if [ "$MODE" = docker ] && [ -n "$N8N_MAIN" ] && [ "$N8N_ON_HOST_NET" = 0 ]; then
+  log "Checking that n8n can reach the AI (read-only request from $N8N_MAIN)"
+  if "${DOCKER[@]}" exec "$N8N_MAIN" node -e \
     "fetch('$LANGCHAIN_URL/health').then(r => r.text()).then(t => console.log(t)).catch(e => { console.error(e.message); process.exit(1); })"; then
     echo "n8n can reach the AI stack."
   else
@@ -394,3 +446,15 @@ Limits: $AI_CPUS of $CPUS_TOTAL CPU cores, $AI_MEM_MB of $MEM_TOTAL_MB MB RAM. N
 Remove everything: bash uninstall_local_ai.sh   (add --purge to also delete the models)
 ========================================================================
 EOF
+
+if [ -n "$REMOTE_N8N_IP" ]; then
+  cat <<EOF
+
+Still to do, because n8n runs on another server:
+  a) Cloud firewall. In OCI: Networking > Virtual cloud networks > your VCN > Security Lists > the list used by
+     this server's subnet > Add Ingress Rules: Source CIDR $REMOTE_N8N_IP/32, IP protocol TCP, destination port
+     range $LANGCHAIN_PORT,$OLLAMA_PORT. Never use 0.0.0.0/0 for these ports: Ollama has no password.
+  b) Test from the n8n server (use your n8n container's name from 'docker ps', e.g. n8n-n8n-1):
+     docker exec n8n-n8n-1 node -e "fetch('$LANGCHAIN_URL/health').then(r => r.text()).then(console.log)"
+EOF
+fi

@@ -58,6 +58,15 @@ Telegram ─▶ n8n "Quant Hedgefund" ─┬─▶ Supabase (holdings, trades, s
    - picks models that fit your RAM, downloads them, and checks that n8n can reach them.
 
    At the end it prints the exact URLs and the API key for the next step. To remove it: `bash uninstall_local_ai.sh` (`--purge` also deletes the models).
+
+   **Same server or a second VM?** Check the n8n server first with `nproc; free -g`. Oracle's free allowance is 4 Ampere cores and 24 GB in total, shared across all your Ampere VMs.
+
+   | n8n server | Do this |
+   |---|---|
+   | 4 cores and ~23 GB | Install on the same server (above). The AI gets 3 cores and ~16 GB. |
+   | Smaller | Create a second Ampere VM from the leftover allowance, in the same VCN and subnet as n8n. Install Docker on it (`curl -fsSL https://get.docker.com \| sudo sh`), then run the installer there with n8n's private IP: `REMOTE_N8N_IP=10.0.0.223 bash install_local_ai.sh`. |
+
+   In second-VM mode the AI gets that VM's full capacity and listens only on its private IP. The installer prints the one OCI Security List rule to add: TCP 8000 and 11434, source n8n's private IP `/32` only, never `0.0.0.0/0`. It also prints a test command to run on the n8n server.
 3. **Point n8n at the AI.** Use the values the installer prints:
    - On *Ask LangChain Analyst*, set the URL (usually `http://qhf-langchain:8000/analyst/invoke`).
    - Create a *Header Auth* credential named **QHF LangChain API key**, with Name `X-API-Key` and the printed key as Value.
